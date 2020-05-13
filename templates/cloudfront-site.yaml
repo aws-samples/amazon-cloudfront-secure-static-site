@@ -4,7 +4,7 @@ Transform: ['AWS::Serverless-2016-10-31', 'S3Objects']
 
 Parameters:
   CertificateArn:
-    Description: Certificate
+    Description: Certificate locater
     Type: String
   DomainName:
     Description: Apex domain

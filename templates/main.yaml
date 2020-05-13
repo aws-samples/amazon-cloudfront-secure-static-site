@@ -7,8 +7,8 @@ Metadata:
       - Label:
           default: Domain
         Parameters:
-          - DomainName
           - SubDomain
+          - DomainName
 
 Mappings:
   Solution:
@@ -17,12 +17,12 @@ Mappings:
 
 Parameters:
   SubDomain:
-    Description: SubDomain
+    Description: The part of a website address before your DomainName - e.g. www or img
     Type: String
     Default: www
     AllowedPattern: ^[^.]*$
   DomainName:
-    Description: Domain Name
+    Description: The part of a website address after your SubDomain - e.g. example.com
     Type: String
 
 Resources:
