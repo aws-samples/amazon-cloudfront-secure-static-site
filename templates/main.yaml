@@ -13,7 +13,7 @@ Metadata:
 Mappings:
   Solution:
     Constants:
-      Version: '0.1'
+      Version: 'v0.1'
 
 Parameters:
   SubDomain:
