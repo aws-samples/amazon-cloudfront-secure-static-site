@@ -1,0 +1,4 @@
+---
+RulesToSuppress:
+- id: F4
+  reason: ignore

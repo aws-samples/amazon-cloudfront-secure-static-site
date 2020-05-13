@@ -1,0 +1,32 @@
+@font-face {
+    font-family: Helvetica Neue;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 12pt;
+}
+
+body {
+    background: #161E2D;
+    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    color: #ddd;
+    max-width: 75em;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+h1 img {
+    vertical-align: middle;
+}
+
+a {
+    color: #44b9d6;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}

@@ -1,0 +1,97 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ACFS3 - Cert Provider with DNS validation
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  ResourceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python2.7
+      CodeUri: ../macro.zip
+      Handler: resource.handler
+      Policies: AmazonS3FullAccess
+
+  MacroFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.6
+      CodeUri: ../macro.zip
+      Handler: macro.handler
+      Policies: AmazonS3FullAccess
+      Environment:
+        Variables:
+          LAMBDA_ARN: !GetAtt ResourceFunction.Arn
+
+  Macro:
+    Type: AWS::CloudFormation::Macro
+    Properties:
+      Name: S3Objects
+      FunctionName: !GetAtt MacroFunction.Arn
+
+  LambdaPolicy:
+    Type: AWS::IAM::Policy
+    DependsOn:
+      - LambdaRole
+    Properties:
+      PolicyName: CFNCertificateDomainResourceRecordProvider
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - acm:RequestCertificate
+              - acm:DescribeCertificate
+              - acm:UpdateCertificateOptions
+              - acm:DeleteCertificate
+            Resource:
+            - '*'
+          - Effect: Allow
+            Action:
+            - lambda:InvokeFunction
+            Resource:
+            - !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-certificate-provider'
+          - Effect: Allow
+            Action:
+              - logs:*
+            Resource: arn:aws:logs:*:*:*
+      Roles:
+        - !Ref 'LambdaRole'
+
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+
+  CFNCustomProviderLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 7
+      LogGroupName: !Sub '/aws/lambda/${CFNCustomProvider}'
+    DependsOn:
+      - CFNCustomProvider
+
+  CFNCustomProvider:
+    Type: AWS::Serverless::Function
+    DependsOn:
+      - LambdaRole
+    Properties:
+      CodeUri: s3://binxio-public-us-east-1/lambdas/cfn-certificate-provider-0.2.4.zip
+      Description: CFN Certificate Domain Resource Record Provider
+      MemorySize: 128
+      Handler: provider.handler
+      Role: !GetAtt 'LambdaRole.Arn'
+      Timeout: 300
+      Runtime: python3.6
+      FunctionName: binxio-cfn-certificate-provider
+
+Outputs:
+  CFNCustomProvider:
+    Value: !Ref 'CFNCustomProvider'

@@ -1,0 +1,219 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ACFS3 - CloudFront with Header Security and site content
+Transform: ['AWS::Serverless-2016-10-31', 'S3Objects']
+
+Parameters:
+  CertificateArn:
+    Description: Certificate
+    Type: String
+  DomainName:
+    Description: Apex domain
+    Type: String
+  SubDomain:
+    Description: Subdomain
+    Type: String
+  Release:
+    Description: Release Version
+    Type: String
+
+Resources:
+
+  S3BucketLogs:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      AccessControl: LogDeliveryWrite
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  S3BucketRoot:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LoggingConfiguration:
+        DestinationBucketName: !Ref 'S3BucketLogs'
+        LogFilePrefix: 'cdn/'
+      WebsiteConfiguration:
+        ErrorDocument: '404.html'
+        IndexDocument: 'index.html'
+      Tags:
+        - Key: Domain
+          Value: !Sub '${SubDomain}.${DomainName}'
+
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref 'S3BucketRoot'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - s3:GetObject
+            Effect: Allow
+            Resource: !Sub '${S3BucketRoot.Arn}/*'
+            Principal:
+              CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
+
+  LambdaEdgeFunction:
+    DeletionPolicy: Retain
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt LambdaEdgeFunctionRole.Arn
+      CodeUri: ../s-headers.zip
+      Runtime: 'nodejs12.x'
+      Timeout: 25
+
+  Lambdaversion:
+    Type: AWS::Lambda::Version
+    Properties: 
+      FunctionName: !Ref LambdaEdgeFunction
+      Description: v1
+
+  LambdaEdgeFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+        Path: '/'
+        ManagedPolicyArns:
+            - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            -
+              Sid: 'AllowLambdaServiceToAssumeRole'
+              Effect: 'Allow'
+              Action:
+                - 'sts:AssumeRole'
+              Principal:
+                Service:
+                - 'lambda.amazonaws.com'
+                - 'edgelambda.amazonaws.com'
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Aliases:
+          - !Sub '${SubDomain}.${DomainName}'
+        DefaultCacheBehavior:
+          Compress: true
+          DefaultTTL: 86400
+          ForwardedValues:
+            QueryString: true
+          MaxTTL: 31536000
+          TargetOriginId: !Sub 'S3-${AWS::StackName}-root'
+          LambdaFunctionAssociations:
+            - 
+              EventType: origin-response
+              LambdaFunctionARN: !Ref Lambdaversion
+          ViewerProtocolPolicy: 'redirect-to-https'
+        CustomErrorResponses:
+          - ErrorCachingMinTTL: 60
+            ErrorCode: 404
+            ResponseCode: 404
+            ResponsePagePath: '/404.html'
+        Enabled: true
+        HttpVersion: 'http2'
+        DefaultRootObject: 'index.html'
+        IPV6Enabled: true
+        Logging:
+          Bucket: !GetAtt 'S3BucketLogs.DomainName'
+          IncludeCookies: false
+          Prefix: 'cdn/'
+        Origins:
+          - DomainName: !GetAtt 'S3BucketRoot.DomainName'
+            Id: !Sub 'S3-${AWS::StackName}-root'
+            S3OriginConfig:
+              OriginAccessIdentity:
+                !Join ['', ['origin-access-identity/cloudfront/', !Ref CloudFrontOriginAccessIdentity]]
+        PriceClass: 'PriceClass_All'
+        ViewerCertificate:
+          AcmCertificateArn: !Ref 'CertificateArn'
+          MinimumProtocolVersion: 'TLSv1.1_2016'
+          SslSupportMethod: 'sni-only'
+
+  CloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub 'CloudFront OAI for ${SubDomain}.${DomainName}'
+        
+  Route53RecordSetGroup:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneName: !Sub '${DomainName}.'
+      RecordSets:
+      - Name: !Sub '${SubDomain}.${DomainName}'
+        Type: 'A'
+        AliasTarget:
+          DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
+          EvaluateTargetHealth: false
+          # The  following HosteZoneId is always used for alias records pointing to CF.
+          HostedZoneId: 'Z2FDTNDATAQYW2'
+
+  CopiedIndex:
+    Type: AWS::S3::Object
+    Properties:
+      Source:
+        Bucket: !Sub 'solution-builders-${AWS::Region}'
+        Key: !Sub 'amazon-cloudfront-secure-static-site/${Release}/source/website/index.html'
+      Target:
+        Bucket: !Ref S3BucketRoot
+        Key: index.html
+
+  CopiedOther:
+    Type: AWS::S3::Object
+    Properties:
+      Source:
+        Bucket: !Sub 'solution-builders-${AWS::Region}'
+        Key: !Sub 'amazon-cloudfront-secure-static-site/${Release}/source/website/other.html'
+      Target:
+        Bucket: !Ref S3BucketRoot
+        Key: other.html
+
+  CopiedError:
+    Type: AWS::S3::Object
+    Properties:
+      Source:
+        Bucket: !Sub 'solution-builders-${AWS::Region}'
+        Key: !Sub 'amazon-cloudfront-secure-static-site/${Release}/source/website/404.html'
+      Target:
+        Bucket: !Ref S3BucketRoot
+        Key: 404.html
+
+  CopiedCssStyles:
+    Type: AWS::S3::Object
+    Properties:
+      Source:
+        Bucket: !Sub 'solution-builders-${AWS::Region}'
+        Key: !Sub 'amazon-cloudfront-secure-static-site/${Release}/source/website/css/style.css'
+      Target:
+        Bucket: !Ref S3BucketRoot
+        Key: css/style.css
+
+Outputs:
+  LambdaEdgeFunctionVersion:
+    Description: Lambda@Edge Function ARN with Version
+    Value: !Ref Lambdaversion
+
+  CloudFrontDistribution:
+    Description: Cloudfront Distribution Domain Name
+    Value: !GetAtt CloudFrontDistribution.DomainName
+
+  CloudFrontDomainName:
+    Description: Cloudfront Distribution CNAME
+    Value: !Sub '${SubDomain}.${DomainName}'
+
+  S3BucketLogs:
+    Description: Logging Bucket
+    Value: !Ref S3BucketLogs
+
+  S3BucketRoot:
+    Description: Webroot Bucket
+    Value: !Ref S3BucketRoot

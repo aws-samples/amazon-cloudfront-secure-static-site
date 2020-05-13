@@ -1,0 +1,25 @@
+---
+
+name: Unit Tests
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+jobs:
+  unit_tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.6'
+      - run: gem install cfn-nag
+      - uses: actions/checkout@v2
+      # Run Tests
+      - name: CloudFormation unit tests
+        run: make test-cfn

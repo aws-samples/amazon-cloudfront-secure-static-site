@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: ACFS3 - S3 Static site with CF and ACM (uksb-1qnk6ni7b) (version:v0.1)
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Domain
+        Parameters:
+          - DomainName
+          - SubDomain
+
+Mappings:
+  Solution:
+    Constants:
+      Version: '0.1'
+
+Parameters:
+  SubDomain:
+    Description: SubDomain
+    Type: String
+    Default: www
+    AllowedPattern: ^[^.]*$
+  DomainName:
+    Description: Domain Name
+    Type: String
+
+Resources:
+  CustomResourceStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./custom-resource.yaml
+
+  AcmCertificateStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./acm-certificate.yaml
+      Parameters:
+        DomainName: !Ref DomainName
+        CustomResourceStack: !GetAtt CustomResourceStack.Outputs.CFNCustomProvider
+
+  CloudFrontStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./cloudfront-site.yaml
+      Parameters:
+        CertificateArn: !GetAtt AcmCertificateStack.Outputs.CertificateArn
+        DomainName: !Ref DomainName
+        SubDomain: !Ref SubDomain
+        Release: !FindInMap [Solution, Constants, Version]
+
+Outputs:
+  CFNCustomProvider:
+    Value: !GetAtt CustomResourceStack.Outputs.CFNCustomProvider
+  CertificateArn:
+    Value: !GetAtt AcmCertificateStack.Outputs.CertificateArn
+  CFDistributionName:
+    Value: !GetAtt CloudFrontStack.Outputs.CloudFrontDistribution
+  LambdaEdgeFunctionVersion:
+    Value: !GetAtt CloudFrontStack.Outputs.LambdaEdgeFunctionVersion
+  CloudFrontDomainName:
+    Description: Cloudfront Distribution CNAME
+    Value: !GetAtt CloudFrontStack.Outputs.CloudFrontDomainName
+  S3BucketLogs:
+    Description: Logging Bucket
+    Value: !GetAtt CloudFrontStack.Outputs.S3BucketLogs
+  S3BucketRoot:
+    Description: Webroot Bucket
+    Value: !GetAtt CloudFrontStack.Outputs.S3BucketRoot
+  SolutionVersion:
+    Value: !FindInMap [Solution, Constants, Version]
