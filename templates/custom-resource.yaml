@@ -94,4 +94,4 @@ Resources:
 
 Outputs:
   CFNCustomProvider:
-    Value: !Ref 'CFNCustomProvider'
+    Value: !GetAtt 'CFNCustomProvider.Arn'
