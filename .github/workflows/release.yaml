@@ -57,7 +57,7 @@ jobs:
         run: cd source/secured-headers/ && zip -r ../../s-headers.zip index.js && cd ../../
       - name: Package Release
         run: zip -r packaged.zip -@ < ci/include.lst
-      - name: Upload Release
-        run: aws s3 cp packaged.zip s3://$CFN_BUCKET/amazon-cloudfront-secure-static-site/v${{ env.THIS_VERSION }}/amazon-cloudfront-secure-static-site.zip
+        #- name: Upload Release
+        #        run: aws s3 cp packaged.zip s3://$CFN_BUCKET/amazon-cloudfront-secure-static-site/v${{ env.THIS_VERSION }}/amazon-cloudfront-secure-static-site.zip
         env:
           CFN_BUCKET: ${{ secrets.CFN_BUCKET }}
