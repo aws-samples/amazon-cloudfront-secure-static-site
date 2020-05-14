@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: ACFS3 - S3 Static site with CF and ACM (uksb-1qnk6ni7b) (version:v0.3)
+Description: ACFS3 - S3 Static site with CF and ACM (uksb-1qnk6ni7b) (version:v0.4)
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -13,7 +13,7 @@ Metadata:
 Mappings:
   Solution:
     Constants:
-      Version: 'v0.3'
+      Version: 'v0.4'
 
 Parameters:
   SubDomain:
