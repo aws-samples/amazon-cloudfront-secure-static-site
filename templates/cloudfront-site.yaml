@@ -71,9 +71,6 @@ Resources:
       CodeUri: ../s-headers.zip
       Runtime: 'nodejs12.x'
       Timeout: 25
-      Tags:
-        - Key: Solution
-          Value: ACFS3
 
   Lambdaversion:
     Type: AWS::Lambda::Version

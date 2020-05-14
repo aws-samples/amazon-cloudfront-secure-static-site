@@ -68,9 +68,6 @@ Resources:
       Timeout: 300
       Role: !GetAtt LambdaRole.Arn
       Runtime: python3.6
-      Tags:
-        - Key: Solution
-          Value: ACFS3
 
 Outputs:
   CFNCustomProvider:
