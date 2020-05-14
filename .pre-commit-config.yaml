@@ -1,0 +1,31 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+
+repos:
+  # General
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: pretty-format-json
+        args: [--autofix, --indent, '4']
+      - id: no-commit-to-branch
+        args: ['--branch', 'master']
+
+  # Secrets
+  - repo: https://github.com/awslabs/git-secrets
+    rev: 5e28df337746db4f070c84f7069d365bfd0d72a8
+    hooks:
+      - id: git-secrets
+
+  # CloudFormation
+  - repo: https://github.com/aws-cloudformation/cfn-python-lint
+    rev: v0.27.1
+    hooks:
+      - id: cfn-python-lint
+        name: AWS CloudFormation Linter
+        files: \.(template)$
+        args: [--ignore-checks=W3002]

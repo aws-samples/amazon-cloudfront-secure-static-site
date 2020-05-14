@@ -7,8 +7,8 @@
 **/.zip
 **/tmp
 **/out-tsc
-/templates
 **/settings.js
+**/packaged.template
 
 # dependencies
 **/node_modules
@@ -22,6 +22,7 @@
 # misc
 **/npm-debug.log
 **/testem.log
+**/.env
 # package-lock.json
 **/.vscode/settings.json
 **/setenv.sh
