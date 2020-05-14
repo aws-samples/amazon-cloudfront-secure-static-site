@@ -37,7 +37,7 @@ Resources:
       TemplateURL: ./acm-certificate.yaml
       Parameters:
         DomainName: !Ref DomainName
-        CustomResourceStack: !GetAtt CustomResourceStack.Outputs.CFNCustomProvider
+        CFNCustomProvider: !GetAtt CustomResourceStack.Outputs.CFNCustomProvider
 
   CloudFrontStack:
     Type: AWS::CloudFormation::Stack

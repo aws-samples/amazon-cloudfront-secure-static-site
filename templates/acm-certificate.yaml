@@ -7,7 +7,7 @@ Parameters:
   Region:
     Type: String
     Default: 'us-east-1'
-  CustomResourceStack:
+  CFNCustomProvider:
     Type: String
 
 Resources:
@@ -17,20 +17,20 @@ Resources:
       DomainName: !Sub '*.${DomainName}'
       Region: !Ref Region
       ValidationMethod: DNS
-      ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-certificate-provider'
+      ServiceToken: !Ref 'CFNCustomProvider'
 
   IssuedCertificate:
     Type: Custom::IssuedCertificate
     Properties:
       CertificateArn: !Ref Certificate
-      ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-certificate-provider'
+      ServiceToken: !Ref 'CFNCustomProvider'
 
   CertificateDNSRecord:
     Type: Custom::CertificateDNSRecord
     Properties:
       CertificateArn: !Ref Certificate
       DomainName: !Sub '*.${DomainName}'
-      ServiceToken: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:binxio-cfn-certificate-provider'
+      ServiceToken: !Ref 'CFNCustomProvider'
 
   DomainValidationRecord:
     Type: AWS::Route53::RecordSetGroup
@@ -48,7 +48,5 @@ Resources:
 Outputs:
   DNSRecord:
     Value: !Sub '${CertificateDNSRecord.Name} ${CertificateDNSRecord.Type} ${CertificateDNSRecord.Value}'
-  CustomResourceStack:
-    Value: !Ref CustomResourceStack
   CertificateArn: 
     Value: !Ref Certificate

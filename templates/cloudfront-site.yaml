@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: ACFS3 - CloudFront with Header Security and site content
-Transform: ['AWS::Serverless-2016-10-31', 'S3Objects']
+Transform: 'AWS::Serverless-2016-10-31'
 
 Parameters:
   CertificateArn:
@@ -17,7 +17,6 @@ Parameters:
     Type: String
 
 Resources:
-
   S3BucketLogs:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
@@ -156,46 +155,6 @@ Resources:
           EvaluateTargetHealth: false
           # The  following HosteZoneId is always used for alias records pointing to CF.
           HostedZoneId: 'Z2FDTNDATAQYW2'
-
-  CopiedIndex:
-    Type: AWS::S3::Object
-    Properties:
-      Source:
-        Bucket: !Sub 'solution-builders-${AWS::Region}'
-        Key: !Sub 'amazon-cloudfront-secure-static-site/${Release}/source/website/index.html'
-      Target:
-        Bucket: !Ref S3BucketRoot
-        Key: index.html
-
-  CopiedOther:
-    Type: AWS::S3::Object
-    Properties:
-      Source:
-        Bucket: !Sub 'solution-builders-${AWS::Region}'
-        Key: !Sub 'amazon-cloudfront-secure-static-site/${Release}/source/website/other.html'
-      Target:
-        Bucket: !Ref S3BucketRoot
-        Key: other.html
-
-  CopiedError:
-    Type: AWS::S3::Object
-    Properties:
-      Source:
-        Bucket: !Sub 'solution-builders-${AWS::Region}'
-        Key: !Sub 'amazon-cloudfront-secure-static-site/${Release}/source/website/404.html'
-      Target:
-        Bucket: !Ref S3BucketRoot
-        Key: 404.html
-
-  CopiedCssStyles:
-    Type: AWS::S3::Object
-    Properties:
-      Source:
-        Bucket: !Sub 'solution-builders-${AWS::Region}'
-        Key: !Sub 'amazon-cloudfront-secure-static-site/${Release}/source/website/css/style.css'
-      Target:
-        Bucket: !Ref S3BucketRoot
-        Key: css/style.css
 
 Outputs:
   LambdaEdgeFunctionVersion:
