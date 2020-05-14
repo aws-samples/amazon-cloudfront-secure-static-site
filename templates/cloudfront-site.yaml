@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: ACFS3 - CloudFront with Header Security and site content
-Transform: ['AWS::Serverless-2016-10-31', 'S3Objects']
+Transform: 'AWS::Serverless-2016-10-31'
 
 Parameters:
   CertificateArn:
@@ -17,7 +17,6 @@ Parameters:
     Type: String
 
 Resources:
-
   S3BucketLogs:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
@@ -27,6 +26,9 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
+      Tags:
+        - Key: Solution
+          Value: ACFS3
 
   S3BucketRoot:
     Type: AWS::S3::Bucket
@@ -69,6 +71,9 @@ Resources:
       CodeUri: ../s-headers.zip
       Runtime: 'nodejs12.x'
       Timeout: 25
+      Tags:
+        - Key: Solution
+          Value: ACFS3
 
   Lambdaversion:
     Type: AWS::Lambda::Version
@@ -79,21 +84,24 @@ Resources:
   LambdaEdgeFunctionRole:
     Type: AWS::IAM::Role
     Properties:
-        Path: '/'
-        ManagedPolicyArns:
-            - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
-        AssumeRolePolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-            -
-              Sid: 'AllowLambdaServiceToAssumeRole'
-              Effect: 'Allow'
-              Action:
-                - 'sts:AssumeRole'
-              Principal:
-                Service:
-                - 'lambda.amazonaws.com'
-                - 'edgelambda.amazonaws.com'
+      Path: '/'
+      ManagedPolicyArns:
+          - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Sid: 'AllowLambdaServiceToAssumeRole'
+            Effect: 'Allow'
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+              - 'lambda.amazonaws.com'
+              - 'edgelambda.amazonaws.com'
+      Tags:
+        - Key: Solution
+          Value: ACFS3
 
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
@@ -137,6 +145,9 @@ Resources:
           AcmCertificateArn: !Ref 'CertificateArn'
           MinimumProtocolVersion: 'TLSv1.1_2016'
           SslSupportMethod: 'sni-only'
+      Tags:
+        - Key: Solution
+          Value: ACFS3
 
   CloudFrontOriginAccessIdentity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
@@ -156,46 +167,6 @@ Resources:
           EvaluateTargetHealth: false
           # The  following HosteZoneId is always used for alias records pointing to CF.
           HostedZoneId: 'Z2FDTNDATAQYW2'
-
-  CopiedIndex:
-    Type: AWS::S3::Object
-    Properties:
-      Source:
-        Bucket: !Sub 'solution-builders-${AWS::Region}'
-        Key: !Sub 'amazon-cloudfront-secure-static-site/${Release}/source/website/index.html'
-      Target:
-        Bucket: !Ref S3BucketRoot
-        Key: index.html
-
-  CopiedOther:
-    Type: AWS::S3::Object
-    Properties:
-      Source:
-        Bucket: !Sub 'solution-builders-${AWS::Region}'
-        Key: !Sub 'amazon-cloudfront-secure-static-site/${Release}/source/website/other.html'
-      Target:
-        Bucket: !Ref S3BucketRoot
-        Key: other.html
-
-  CopiedError:
-    Type: AWS::S3::Object
-    Properties:
-      Source:
-        Bucket: !Sub 'solution-builders-${AWS::Region}'
-        Key: !Sub 'amazon-cloudfront-secure-static-site/${Release}/source/website/404.html'
-      Target:
-        Bucket: !Ref S3BucketRoot
-        Key: 404.html
-
-  CopiedCssStyles:
-    Type: AWS::S3::Object
-    Properties:
-      Source:
-        Bucket: !Sub 'solution-builders-${AWS::Region}'
-        Key: !Sub 'amazon-cloudfront-secure-static-site/${Release}/source/website/css/style.css'
-      Target:
-        Bucket: !Ref S3BucketRoot
-        Key: css/style.css
 
 Outputs:
   LambdaEdgeFunctionVersion:

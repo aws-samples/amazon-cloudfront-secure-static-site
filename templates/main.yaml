@@ -30,6 +30,9 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: ./custom-resource.yaml
+      Tags:
+        - Key: Solution
+          Value: ACFS3
 
   AcmCertificateStack:
     Type: AWS::CloudFormation::Stack
@@ -37,7 +40,10 @@ Resources:
       TemplateURL: ./acm-certificate.yaml
       Parameters:
         DomainName: !Ref DomainName
-        CustomResourceStack: !GetAtt CustomResourceStack.Outputs.CFNCustomProvider
+        CFNCustomProvider: !GetAtt CustomResourceStack.Outputs.CFNCustomProvider
+      Tags:
+        - Key: Solution
+          Value: ACFS3
 
   CloudFrontStack:
     Type: AWS::CloudFormation::Stack
@@ -48,6 +54,9 @@ Resources:
         DomainName: !Ref DomainName
         SubDomain: !Ref SubDomain
         Release: !FindInMap [Solution, Constants, Version]
+      Tags:
+        - Key: Solution
+          Value: ACFS3
 
 Outputs:
   CFNCustomProvider:

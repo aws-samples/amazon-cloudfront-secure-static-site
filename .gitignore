@@ -9,6 +9,10 @@
 **/out-tsc
 **/settings.js
 **/packaged.template
+macro.zip
+packaged.template
+packaged.zip
+s-headers.zip
 
 # dependencies
 **/node_modules
