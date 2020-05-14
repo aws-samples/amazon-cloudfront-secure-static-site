@@ -37,7 +37,7 @@ This solution creates a CloudFront distribution to serve your website to viewers
 This solution creates an SSL/TLS certificate in ACM, and attaches it to the CloudFront distribution. This enables the distribution to serve your domain’s website using HTTPS.
 
 ### Lambda@Edge configuration
-This solution create a Lambda@Edge function that’s triggered on an [origin response event](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-cloudfront-trigger-events.html). The function adds security headers to every response served by CloudFront.
+This solution creates a Lambda@Edge function that’s triggered on an [origin response event](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-cloudfront-trigger-events.html). The function adds security headers to every response served by CloudFront.
 
 The security headers can help mitigate some attacks, as explained in this blog post: [Adding HTTP Security Headers Using Lambda@Edge and Amazon CloudFront](https://aws.amazon.com/blogs/networking-and-content-delivery/adding-http-security-headers-using-lambdaedge-and-amazon-cloudfront/). Security headers are a group of headers in the web server response that tell web browsers to take extra security precautions. This solution adds the following headers to each response:
 
