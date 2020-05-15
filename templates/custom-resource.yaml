@@ -2,12 +2,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: ACFS3 - Cert Provider with DNS validation
 Transform: AWS::Serverless-2016-10-31
 
-Parameters:
-  LayerBucket:
-    Type: String
-  LayerVersion:
-    Type: String
-
 Resources:
   LambdaPermission:
     Type: AWS::Lambda::Permission
@@ -75,26 +69,40 @@ Resources:
       Role: !GetAtt LambdaRole.Arn
       Runtime: python3.6
 
-  CopyBucket:
+  S3BucketLogs:
+    Type: AWS::S3::Bucket
     DeletionPolicy: Retain
-    Type: "AWS::S3::Bucket"
     Properties:
-      WebsiteConfiguration:
-        ErrorDocument: error.html
-        IndexDocument: index.html
+      AccessControl: LogDeliveryWrite
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
+      Tags:
+        - Key: Solution
+          Value: ACFS3
 
-  CopyLayerVersion:
-    Type: "AWS::Lambda::LayerVersion"
+  S3BucketRoot:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
     Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LoggingConfiguration:
+        DestinationBucketName: !Ref 'S3BucketLogs'
+        LogFilePrefix: 'cdn/'
+      Tags:
+        - Key: Solution
+          Value: ACFS3
+  
+  CopyLayerVersion:
+    Type: "AWS::Serverless::LayerVersion"
+    Properties:
+      ContentUri: ../witch.zip
       CompatibleRuntimes:
         - nodejs12.x
-      Content:
-        S3Bucket: !Ref LayerBucket
-        S3Key: !Sub '${LayerVersion}/witch.zip'
 
   CopyRole:
     Type: "AWS::IAM::Role"
@@ -111,12 +119,12 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
 
   CopyFunction:
-    Type: "AWS::Lambda::Function"
+    Type: AWS::Serverless::Function
     Properties:
-      Code: ../www
+      CodeUri: ../www
       Environment:
         Variables:
-          BUCKET: !Ref CopyBucket
+          BUCKET: !Ref S3BucketRoot
       Handler: witch.staticHandler
       Layers:
         - !Ref CopyLayerVersion
@@ -125,11 +133,24 @@ Resources:
       Timeout: 300
 
 Outputs:
+  S3BucketRoot:
+    Description: Website bucket
+    Value: !Ref S3BucketRoot
+  S3BucketRootName:
+    Description: Website bucket name
+    Value: !GetAtt S3BucketRoot.DomainName
+  S3BucketRootArn:
+    Description: Website bucket locator
+    Value: !GetAtt S3BucketRoot.Arn
+  S3BucketLogs:
+    Description: Logging bucket
+    Value: !Ref S3BucketLogs
+  S3BucketLogsName:
+    Description: Logging bucket Name
+    Value: !GetAtt S3BucketLogs.DomainName
   CFNCustomProvider:
+    Description: ACM helper function
     Value: !GetAtt CFNCustomProvider.Arn
-
-  CopyCustomResource:
-    Value: !GetAtt CopyCustomResource.Arn
-
-  CopyBucketWebsiteURL:
-    Value: !GetAtt CopyBucket.WebsiteURL
+  CopyFunction:
+    Description: S3 helper function
+    Value: !GetAtt CopyFunction.Arn

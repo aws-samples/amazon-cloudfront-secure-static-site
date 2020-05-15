@@ -9,8 +9,15 @@ Parameters:
     Default: 'us-east-1'
   CFNCustomProvider:
     Type: String
+  CopyFunction:
+    Type: String
 
 Resources:
+  CopyCustomResource:
+    Type: "AWS::CloudFormation::CustomResource"
+    Properties:
+      ServiceToken: !Ref CopyFunction
+
   Certificate:
     Type: Custom::Certificate
     Properties:
@@ -47,6 +54,8 @@ Resources:
 
 Outputs:
   DNSRecord:
+    Description: DNS record
     Value: !Sub '${CertificateDNSRecord.Name} ${CertificateDNSRecord.Type} ${CertificateDNSRecord.Value}'
   CertificateArn: 
+    Description: Issued certificate
     Value: !Ref Certificate
