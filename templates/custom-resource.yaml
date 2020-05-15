@@ -75,6 +75,14 @@ Resources:
       Role: !GetAtt LambdaRole.Arn
       Runtime: python3.6
 
+  CopyBucket:
+    DeletionPolicy: Retain
+    Type: "AWS::S3::Bucket"
+    Properties:
+      WebsiteConfiguration:
+        ErrorDocument: error.html
+        IndexDocument: index.html
+
   CopyLayerVersion:
     Type: "AWS::Lambda::LayerVersion"
     Properties:
@@ -118,3 +126,6 @@ Outputs:
 
   CopyCustomResource:
     Value: !GetAtt CopyCustomResource.Arn
+
+  CopyBucketWebsiteURL:
+    Value: !GetAtt CopyBucket.WebsiteURL
