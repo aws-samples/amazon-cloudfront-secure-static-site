@@ -19,14 +19,14 @@ Parameters:
   LayerBucket:
     Description: Layer bucket
     Type: String
-#   SubDomain:
-#     Description: The part of a website address before your DomainName - e.g. www or img
-#     Type: String
-#     Default: www
-#     AllowedPattern: ^[^.]*$
-#   DomainName:
-#     Description: The part of a website address after your SubDomain - e.g. example.com
-#     Type: String
+  SubDomain:
+    Description: The part of a website address before your DomainName - e.g. www or img
+    Type: String
+    Default: www
+    AllowedPattern: ^[^.]*$
+  DomainName:
+    Description: The part of a website address after your SubDomain - e.g. example.com
+    Type: String
 
 Resources:
   CustomResourceStack:
@@ -40,47 +40,47 @@ Resources:
         - Key: Solution
           Value: ACFS3
 
-  # AcmCertificateStack:
-  #   Type: AWS::CloudFormation::Stack
-  #   Properties:
-  #     TemplateURL: ./acm-certificate.yaml
-  #     Parameters:
-  #       DomainName: !Ref DomainName
-  #       CFNCustomProvider: !GetAtt CustomResourceStack.Outputs.CFNCustomProvider
-  #     Tags:
-  #       - Key: Solution
-  #         Value: ACFS3
+  AcmCertificateStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./acm-certificate.yaml
+      Parameters:
+        DomainName: !Ref DomainName
+        CFNCustomProvider: !GetAtt CustomResourceStack.Outputs.CFNCustomProvider
+      Tags:
+        - Key: Solution
+          Value: ACFS3
 
-  # CloudFrontStack:
-  #   Type: AWS::CloudFormation::Stack
-  #   Properties:
-  #     TemplateURL: ./cloudfront-site.yaml
-  #     Parameters:
-  #       CertificateArn: !GetAtt AcmCertificateStack.Outputs.CertificateArn
-  #       DomainName: !Ref DomainName
-  #       SubDomain: !Ref SubDomain
-  #       Release: !FindInMap [Solution, Constants, Version]
-  #     Tags:
-  #       - Key: Solution
-  #         Value: ACFS3
+  CloudFrontStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./cloudfront-site.yaml
+      Parameters:
+        CertificateArn: !GetAtt AcmCertificateStack.Outputs.CertificateArn
+        DomainName: !Ref DomainName
+        SubDomain: !Ref SubDomain
+        Release: !FindInMap [Solution, Constants, Version]
+      Tags:
+        - Key: Solution
+          Value: ACFS3
 
 Outputs:
   CFNCustomProvider:
     Value: !GetAtt CustomResourceStack.Outputs.CFNCustomProvider
-  # CertificateArn:
-  #   Value: !GetAtt AcmCertificateStack.Outputs.CertificateArn
-  # CFDistributionName:
-  #   Value: !GetAtt CloudFrontStack.Outputs.CloudFrontDistribution
-  # LambdaEdgeFunctionVersion:
-  #   Value: !GetAtt CloudFrontStack.Outputs.LambdaEdgeFunctionVersion
-  # CloudFrontDomainName:
-  #   Description: Cloudfront Distribution CNAME
-  #   Value: !GetAtt CloudFrontStack.Outputs.CloudFrontDomainName
-  # S3BucketLogs:
-  #   Description: Logging Bucket
-  #   Value: !GetAtt CloudFrontStack.Outputs.S3BucketLogs
-  # S3BucketRoot:
-  #   Description: Webroot Bucket
-  #   Value: !GetAtt CloudFrontStack.Outputs.S3BucketRoot
+  CertificateArn:
+    Value: !GetAtt AcmCertificateStack.Outputs.CertificateArn
+  CFDistributionName:
+    Value: !GetAtt CloudFrontStack.Outputs.CloudFrontDistribution
+  LambdaEdgeFunctionVersion:
+    Value: !GetAtt CloudFrontStack.Outputs.LambdaEdgeFunctionVersion
+  CloudFrontDomainName:
+    Description: Cloudfront Distribution CNAME
+    Value: !GetAtt CloudFrontStack.Outputs.CloudFrontDomainName
+  S3BucketLogs:
+    Description: Logging Bucket
+    Value: !GetAtt CloudFrontStack.Outputs.S3BucketLogs
+  S3BucketRoot:
+    Description: Webroot Bucket
+    Value: !GetAtt CloudFrontStack.Outputs.S3BucketRoot
   SolutionVersion:
     Value: !FindInMap [Solution, Constants, Version]
