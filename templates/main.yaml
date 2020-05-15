@@ -16,9 +16,6 @@ Mappings:
       Version: 'v0.4'
 
 Parameters:
-  LayerBucket:
-    Description: Layer bucket
-    Type: String
   SubDomain:
     Description: The part of a website address before your DomainName - e.g. www or img
     Type: String
@@ -33,9 +30,6 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: ./custom-resource.yaml
-      Parameters: 
-        LayerVersion: !FindInMap [Solution, Constants, Version]
-        LayerBucket: !Ref LayerBucket
       Tags:
         - Key: Solution
           Value: ACFS3
@@ -47,6 +41,7 @@ Resources:
       Parameters:
         DomainName: !Ref DomainName
         CFNCustomProvider: !GetAtt CustomResourceStack.Outputs.CFNCustomProvider
+        CopyFunction: !GetAtt CustomResourceStack.Outputs.CopyFunction
       Tags:
         - Key: Solution
           Value: ACFS3
@@ -59,28 +54,45 @@ Resources:
         CertificateArn: !GetAtt AcmCertificateStack.Outputs.CertificateArn
         DomainName: !Ref DomainName
         SubDomain: !Ref SubDomain
-        Release: !FindInMap [Solution, Constants, Version]
+        S3BucketRoot: !GetAtt CustomResourceStack.Outputs.S3BucketRoot
+        S3BucketRootName: !GetAtt CustomResourceStack.Outputs.S3BucketRootName
+        S3BucketRootArn: !GetAtt CustomResourceStack.Outputs.S3BucketRootArn
+        S3BucketLogs: !GetAtt CustomResourceStack.Outputs.S3BucketLogs
+        S3BucketLogsName: !GetAtt CustomResourceStack.Outputs.S3BucketLogsName
       Tags:
         - Key: Solution
           Value: ACFS3
 
 Outputs:
   CFNCustomProvider:
+    Description: ACM helper function    
     Value: !GetAtt CustomResourceStack.Outputs.CFNCustomProvider
+  CopyFunction:
+    Description: S3 helper function    
+    Value: !GetAtt CustomResourceStack.Outputs.CopyFunction
+  S3BucketLogs:
+    Description: Logging bucket
+    Value: !GetAtt CustomResourceStack.Outputs.S3BucketLogs
+  S3BucketRoot:
+    Description: Website bucket
+    Value: !GetAtt CustomResourceStack.Outputs.S3BucketRoot
+  S3BucketLogsName:
+    Description: Logging bucket name
+    Value: !GetAtt CustomResourceStack.Outputs.S3BucketLogsName
+  S3BucketRootName:
+    Description: Website bucket name
+    Value: !GetAtt CustomResourceStack.Outputs.S3BucketRootName
   CertificateArn:
+    Description: Issued certificate 
     Value: !GetAtt AcmCertificateStack.Outputs.CertificateArn
   CFDistributionName:
+    Description: CloudFront distribution
     Value: !GetAtt CloudFrontStack.Outputs.CloudFrontDistribution
   LambdaEdgeFunctionVersion:
+    Description: Security Lambda version
     Value: !GetAtt CloudFrontStack.Outputs.LambdaEdgeFunctionVersion
   CloudFrontDomainName:
-    Description: Cloudfront Distribution CNAME
+    Description: Website address
     Value: !GetAtt CloudFrontStack.Outputs.CloudFrontDomainName
-  S3BucketLogs:
-    Description: Logging Bucket
-    Value: !GetAtt CloudFrontStack.Outputs.S3BucketLogs
-  S3BucketRoot:
-    Description: Webroot Bucket
-    Value: !GetAtt CloudFrontStack.Outputs.S3BucketRoot
   SolutionVersion:
     Value: !FindInMap [Solution, Constants, Version]

@@ -12,42 +12,23 @@ Parameters:
   SubDomain:
     Description: Subdomain
     Type: String
-  Release:
-    Description: Release Version
+  S3BucketLogs:
+    Description: Logging Bucket
+    Type: String
+  S3BucketRoot:
+    Description: Content Bucket
+    Type: String
+  S3BucketLogsName:
+    Description: Logging Bucket
+    Type: String
+  S3BucketRootName:
+    Description: Content Bucket
+    Type: String
+  S3BucketRootArn:
+    Description: Content Bucket locator
     Type: String
 
 Resources:
-  S3BucketLogs:
-    Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
-    Properties:
-      AccessControl: LogDeliveryWrite
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      Tags:
-        - Key: Solution
-          Value: ACFS3
-
-  S3BucketRoot:
-    Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
-    Properties:
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      LoggingConfiguration:
-        DestinationBucketName: !Ref 'S3BucketLogs'
-        LogFilePrefix: 'cdn/'
-      WebsiteConfiguration:
-        ErrorDocument: '404.html'
-        IndexDocument: 'index.html'
-      Tags:
-        - Key: Domain
-          Value: !Sub '${SubDomain}.${DomainName}'
-
   S3BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -58,7 +39,7 @@ Resources:
           - Action:
               - s3:GetObject
             Effect: Allow
-            Resource: !Sub '${S3BucketRoot.Arn}/*'
+            Resource: !Sub '${S3BucketRootArn}/*'
             Principal:
               CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
 
@@ -123,16 +104,20 @@ Resources:
             ErrorCode: 404
             ResponseCode: 404
             ResponsePagePath: '/404.html'
+          - ErrorCachingMinTTL: 60
+            ErrorCode: 403
+            ResponseCode: 403
+            ResponsePagePath: '/403.html'
         Enabled: true
         HttpVersion: 'http2'
         DefaultRootObject: 'index.html'
         IPV6Enabled: true
         Logging:
-          Bucket: !GetAtt 'S3BucketLogs.DomainName'
+          Bucket: !Ref 'S3BucketLogsName'
           IncludeCookies: false
           Prefix: 'cdn/'
         Origins:
-          - DomainName: !GetAtt 'S3BucketRoot.DomainName'
+          - DomainName: !Ref 'S3BucketRootName'
             Id: !Sub 'S3-${AWS::StackName}-root'
             S3OriginConfig:
               OriginAccessIdentity:
@@ -167,21 +152,13 @@ Resources:
 
 Outputs:
   LambdaEdgeFunctionVersion:
-    Description: Lambda@Edge Function ARN with Version
+    Description: Security Lambda version
     Value: !Ref Lambdaversion
 
   CloudFrontDistribution:
-    Description: Cloudfront Distribution Domain Name
+    Description: CloudFront distribution
     Value: !GetAtt CloudFrontDistribution.DomainName
 
   CloudFrontDomainName:
-    Description: Cloudfront Distribution CNAME
+    Description: Website address
     Value: !Sub '${SubDomain}.${DomainName}'
-
-  S3BucketLogs:
-    Description: Logging Bucket
-    Value: !Ref S3BucketLogs
-
-  S3BucketRoot:
-    Description: Webroot Bucket
-    Value: !Ref S3BucketRoot
