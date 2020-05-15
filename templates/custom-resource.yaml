@@ -2,6 +2,12 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: ACFS3 - Cert Provider with DNS validation
 Transform: AWS::Serverless-2016-10-31
 
+Parameters:
+  LayerBucket:
+    Type: String
+  LayerVersion:
+    Type: String
+
 Resources:
   LambdaPermission:
     Type: AWS::Lambda::Permission
@@ -69,6 +75,57 @@ Resources:
       Role: !GetAtt LambdaRole.Arn
       Runtime: python3.6
 
+  CopyBucket:
+    DeletionPolicy: Retain
+    Type: "AWS::S3::Bucket"
+    Properties:
+      WebsiteConfiguration:
+        ErrorDocument: error.html
+        IndexDocument: index.html
+
+  CopyLayerVersion:
+    Type: "AWS::Lambda::LayerVersion"
+    Properties:
+      CompatibleRuntimes:
+        - nodejs12.x
+      Content:
+        S3Bucket: !Ref LayerBucket
+        S3Key: !Sub '${LayerVersion}/witch.zip'
+
+  CopyRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+
+  CopyFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Code: ../www
+      Environment:
+        Variables:
+          BUCKET: !Ref CopyBucket
+      Handler: witch.staticHandler
+      Layers:
+        - !Ref CopyLayerVersion
+      Role: !GetAtt CopyRole.Arn
+      Runtime: nodejs12.x
+      Timeout: 300
+
 Outputs:
   CFNCustomProvider:
     Value: !GetAtt CFNCustomProvider.Arn
+
+  CopyCustomResource:
+    Value: !GetAtt CopyCustomResource.Arn
+
+  CopyBucketWebsiteURL:
+    Value: !GetAtt CopyBucket.WebsiteURL
