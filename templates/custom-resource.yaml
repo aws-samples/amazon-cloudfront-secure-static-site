@@ -82,6 +82,10 @@ Resources:
       WebsiteConfiguration:
         ErrorDocument: error.html
         IndexDocument: index.html
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
 
   CopyLayerVersion:
     Type: "AWS::Lambda::LayerVersion"
