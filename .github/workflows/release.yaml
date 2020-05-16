@@ -52,12 +52,12 @@ jobs:
           prerelease: false
       # Package and Upload Archive
       - name: Pre-Package Copy Function
-        run: cd source/witch/ && mkdir nodejs && npm install --prefix nodejs mime-types && cp witch.js nodejs/node_modules/ && zip -r ../../witch.zip nodejs  && cd ../../
+        run: cd source/witch/ && npm install --prefix nodejs mime-types && cp witch.js nodejs/node_modules/ && zip -r ../../witch.zip nodejs  && cd ../../
       - name: Pre-Package Function
         run: cd source/secured-headers/ && zip -r ../../s-headers.zip index.js && cd ../../
       - name: Package Release
         run: zip -r packaged.zip -@ < ci/include.lst
-      # - name: Upload Release
-      #   run: aws s3 cp packaged.zip s3://$CFN_BUCKET/amazon-cloudfront-secure-static-site/v${{ env.THIS_VERSION }}/amazon-cloudfront-secure-static-site.zip
-      #   env:
-      #     CFN_BUCKET: ${{ secrets.CFN_BUCKET }}
+      - name: Upload Release
+        run: aws s3 cp packaged.zip s3://$CFN_BUCKET/amazon-cloudfront-secure-static-site/v${{ env.THIS_VERSION }}/amazon-cloudfront-secure-static-site.zip
+        env:
+          CFN_BUCKET: ${{ secrets.CFN_BUCKET }}
