@@ -116,7 +116,25 @@ Resources:
               - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+      Policies:
+      - PolicyName: S3CopyPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - s3:GetObject
+            - s3:ListBucket
+            - s3:PutObject
+            - s3:PutObjectAcl
+            Resource:
+              - !Sub
+                - arn:aws:s3:::${TargetBucket}/*
+                - TargetBucket: !Ref S3BucketRoot
+              - !Sub
+                - arn:aws:s3:::${TargetBucket}
+                - TargetBucket: !Ref S3BucketRoot
+
 
   CopyFunction:
     Type: AWS::Serverless::Function
