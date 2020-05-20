@@ -55,6 +55,7 @@ To deploy the solution, you use [AWS CloudFormation](https://aws.amazon.com/clou
 
 > **Note:** You must have IAM permissions to launch CloudFormation templates that create IAM roles, and to create all the AWS resources in the solution. Also, you are responsible for the cost of the AWS services used while running this solution. For more information about costs, see the pricing pages for each AWS service.
 
+The solution also involves setting the 
 ### Use the CloudFormation console
 
 **To deploy the solution using the CloudFormation console**
@@ -88,6 +89,39 @@ To deploy the solution, you use [AWS CloudFormation](https://aws.amazon.com/clou
 To download the CloudFormation template to deploy on your own, for example by [using the AWS CLI](https://docs.aws.amazon.com/cli/latest/reference/cloudformation/create-stack.html), go to:
 
 https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-static-site/latest/main.yaml
+
+### Updating the Project
+
+If you would like to customise the project and upload your own static website content you can do so by following these steps
+
+1. Ensure that you have npm installed.  See instructions [here](https://www.npmjs.com/get-npm)
+2. Clone or download the project at [https://github.com/awslabs/aws-cloudformation-templates](https://github.com/awslabs/aws-cloudformation-templates)
+3.  Package a build artefact by running the following at the command line
+
+    ```shell
+    make package-function
+    ```
+4. Copy your site content to the projects **www** folder
+4. If you don't have one already, create an S3 bucket to store the CloudFormation artifacts with `aws s3 mb s3://<bucket name>`
+
+5. Package the CloudFormation template. The provided template uses [the AWS Serverless Application Model](https://aws.amazon.com/about-aws/whats-new/2016/11/introducing-the-aws-serverless-application-model/) so must be transformed before you can deploy it.
+
+    ```shell
+    aws cloudformation package \
+        --template-file templates/main.yaml \
+        --s3-bucket <your bucket name here> \
+        --output-template-file packaged.template
+    ```
+
+6. Deploy the packaged CloudFormation template to a CloudFormation stack:
+
+    ```shell
+    aws cloudformation deploy \
+        --stack-name <your stack name> \
+        --template-file packaged.template \
+        --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
+        --parameter-overrides  DomainName=<your domain> SubDomain=<your subdomain>
+    ```
 
 ## Contributing
 Contributions are welcome. Please read the [code of conduct](CODE_OF_CONDUCT.md) and the [contributing guidelines](CONTRIBUTING.md).
