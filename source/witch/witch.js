@@ -25,7 +25,7 @@ exports.staticHandler = function(event, context) {
             Bucket: BUCKET,
             ContentType: fileType,
             Key: file,
-            ACL: "public-read",
+            ACL: "private",
         }).promise();
     })).then((msg) => {
         respond(event, context, SUCCESS, {Message: msg});
