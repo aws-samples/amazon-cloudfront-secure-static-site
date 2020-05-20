@@ -101,19 +101,25 @@ If you would like to customise the project and upload your own static website co
     ```shell
     make package-function
     ```
-4. Copy your site content to the projects **www** folder
-4. If you don't have one already, create an S3 bucket to store the CloudFormation artifacts with `aws s3 mb s3://<bucket name>`
+4. Copy your site content to the projects **www** folder.  Make sure to include the following files
+5. 
+    ```
+- index.html
+- 403.html
+- 404.html
+    ```
+5. If you don't have one already, create an S3 bucket to store the CloudFormation artifacts with `aws s3 mb s3://<bucket name>`
 
-5. Package the CloudFormation template. The provided template uses [the AWS Serverless Application Model](https://aws.amazon.com/about-aws/whats-new/2016/11/introducing-the-aws-serverless-application-model/) so must be transformed before you can deploy it.
+6. Package the CloudFormation template. The provided template uses [the AWS Serverless Application Model](https://aws.amazon.com/about-aws/whats-new/2016/11/introducing-the-aws-serverless-application-model/) so must be transformed before you can deploy it.
 
     ```shell
     aws cloudformation package \
         --template-file templates/main.yaml \
-        --s3-bucket <your bucket name here> \
+        --s3-bucket <bucket name> \
         --output-template-file packaged.template
     ```
 
-6. Deploy the packaged CloudFormation template to a CloudFormation stack:
+7. Deploy the packaged CloudFormation template to a CloudFormation stack:
 
     ```shell
     aws cloudformation deploy \
@@ -122,6 +128,7 @@ If you would like to customise the project and upload your own static website co
         --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
         --parameter-overrides  DomainName=<your domain> SubDomain=<your subdomain>
     ```
+8. Once the stack has deployed note the value for **S3BucketLogs** in the main stack's output and explore your access logs.
 
 ## Contributing
 Contributions are welcome. Please read the [code of conduct](CODE_OF_CONDUCT.md) and the [contributing guidelines](CONTRIBUTING.md).
