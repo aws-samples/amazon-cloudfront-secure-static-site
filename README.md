@@ -15,15 +15,12 @@ The following diagram shows an overview of how the solution works:
 
 ![Architecture](./docs/images/architecture.png)
 
-1. The viewer requests the website at example.com.
+1. The viewer requests the website at www.example.com.
 2. If the requested object is cached, CloudFront returns the object from its cache to the viewer.
 3. If the object is not in CloudFront’s cache, CloudFront requests the object from the origin (an S3 bucket).
 4. S3 returns the object to CloudFront, which triggers the Lambda@Edge origin response event.
 5. The object, including the security headers added by the Lambda@Edge function, is added to CloudFront’s cache.
 6. (Not shown) The objects is returned to the viewer. Subsequent responses for the object are served from the CloudFront cache.
-
-## Prerequisites
-You must have a registered domain name, such as example.com, and point it to a Route53 hosted zone in the same AWS account in which you deploy this solution. For more information, see [Configuring Amazon Route 53 as your DNS service](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html).
 
 ## Solution details
 
@@ -50,12 +47,14 @@ The security headers can help mitigate some attacks, as explained in this blog p
 
 For more information, see [Mozilla’s web security guidelines](https://infosec.mozilla.org/guidelines/web_security).
 
+## Prerequisites
+You must have a registered domain name, such as example.com, and point it to a Route53 hosted zone in the same AWS account in which you deploy this solution. For more information, see [Configuring Amazon Route 53 as your DNS service](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html).
+
 ## Deploy the solution
 To deploy the solution, you use [AWS CloudFormation](https://aws.amazon.com/cloudformation). You can use the CloudFormation console, or download the CloudFormation template to deploy it on your own.
 
 > **Note:** You must have IAM permissions to launch CloudFormation templates that create IAM roles, and to create all the AWS resources in the solution. Also, you are responsible for the cost of the AWS services used while running this solution. For more information about costs, see the pricing pages for each AWS service.
 
-The solution also involves setting the 
 ### Use the CloudFormation console
 
 **To deploy the solution using the CloudFormation console**
@@ -65,12 +64,12 @@ The solution also involves setting the
     [![Launch the Amazon CloudFront secure static website with CloudFormation](./docs/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=amazon-cloudfront-secure-static-site-templates-main&templateURL=https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-static-site/latest/main.yaml)
 
 2. If necessary, sign in with your AWS account credentials.
-3. You should see a **Create stack** page, with the fields specifying the CloudFormation template pre-populated. Choose the **Next** button at the bottom of the page.
+3. You should see a **Create stack** page, with pre-populated fields that specify the CloudFormation template. Choose the **Next** button at the bottom of the page.
 4. On the **Specify stack details** page, enter values for the
    following fields:
 
+    - **SubDomain:** The subdomain for your registered domain name. Viewers use the subdomain to access your website, for example: www.example.com. We recommend using the default value of **www** as the subdomain.
     - **DomainName:** Your registered domain name, such as example.com. This domain must be pointed to a Route53 hosted zone.
-    - **SubDomain:** The subdomain for your registered domain name. For example, for www.example.com the Subdomain is **www**.
 
    After entering values, choose the **Next** button.
 5. On the **Configure stack options** page, you can optionally [add tags and other stack options](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-add-tags.html). When finished, choose the **Next** button.
@@ -82,7 +81,17 @@ The solution also involves setting the
     These capabilities allow CloudFormation to create an IAM role that allows access
    to the stack’s resources, and to name the resources dynamically.
 7. Choose the **Create stack** button.
-8. Wait for the CloudFormation stack to launch. When it’s launched, the **Status** changes to **CREATE_COMPLETE**.
+8. Wait for the CloudFormation stack to launch. The stack launches some nested stacks, and can take several minutes to finish. When it’s launched, the **Status** changes to **CREATE_COMPLETE**.
+9. After the stack is launched, go to **www.example.com** to view your website (replace **example.com** with your domain name). You should see the website’s default content:
+
+    ![Static website page](./docs/images/static-website.png)
+
+**To replace the website’s default content with your own**
+
+1. Go to the [Amazon S3 console](https://s3.console.aws.amazon.com/s3/home).
+1. Choose the bucket whose name begins with **amazon-cloudfront-secure-static-site-s3bucketroot-**.
+    > **Note:** Make sure to choose the bucket with **s3bucketroot** in its name, not **s3bucketlogs**. The bucket with **s3bucketroot** in its name contains the content. The one with **s3bucketlogs** contains only log files.
+1. In the bucket, delete the default content, then upload your own.
 
 ### Download the CloudFormation template
 
@@ -90,37 +99,42 @@ To download the CloudFormation template to deploy on your own, for example by [u
 
 https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-static-site/latest/main.yaml
 
-### Updating the Project
+## Update the website content locally before deploying the solution
 
-If you would like to customise the project and upload your own static website content you can do so by following these steps
+**To customize the website with your own content before deploying the solution**
 
-1. Ensure that you have npm installed.  See instructions [here](https://www.npmjs.com/get-npm)
-2. Clone or download the project at [https://github.com/awslabs/aws-cloudformation-templates](https://github.com/awslabs/aws-cloudformation-templates)
-3.  Package a build artefact by running the following at the command line
+1. Install npm. For more information, go to https://www.npmjs.com/get-npm.
+2. Clone or download this project from https://github.com/awslabs/aws-cloudformation-templates.
+3. Run the following command to package a build artifact.
 
     ```shell
     make package-function
     ```
-4. Copy your site content to the projects **www** folder
-4. If you don't have one already, create an S3 bucket to store the CloudFormation artifacts with `aws s3 mb s3://<bucket name>`
 
-5. Package the CloudFormation template. The provided template uses [the AWS Serverless Application Model](https://aws.amazon.com/about-aws/whats-new/2016/11/introducing-the-aws-serverless-application-model/) so must be transformed before you can deploy it.
+4. Copy your website content into the **www** folder.
+5. If you don’t have one already, create an S3 bucket to store the CloudFormation artifacts. To create one, use the following AWS CLI command:
+
+    ```shell
+    aws s3 mb s3://<S3 bucket name>
+    ```
+
+6. Run the following AWS CLI command to package the CloudFormation template. The template uses the [AWS Serverless Application Model](https://aws.amazon.com/about-aws/whats-new/2016/11/introducing-the-aws-serverless-application-model/), so it must be transformed before you can deploy it.
 
     ```shell
     aws cloudformation package \
         --template-file templates/main.yaml \
-        --s3-bucket <your bucket name here> \
+        --s3-bucket <your S3 bucket name> \
         --output-template-file packaged.template
     ```
 
-6. Deploy the packaged CloudFormation template to a CloudFormation stack:
+7. Run the following command to deploy the packaged CloudFormation template to a CloudFormation stack:
 
     ```shell
     aws cloudformation deploy \
-        --stack-name <your stack name> \
+        --stack-name <your CloudFormation stack name> \
         --template-file packaged.template \
         --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
-        --parameter-overrides  DomainName=<your domain> SubDomain=<your subdomain>
+        --parameter-overrides  DomainName=<your domain name> SubDomain=<your website subdomain>
     ```
 
 ## Contributing
