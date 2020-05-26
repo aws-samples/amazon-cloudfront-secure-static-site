@@ -121,7 +121,7 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
 6. Run the following AWS CLI command to package the CloudFormation template. The template uses the [AWS Serverless Application Model](https://aws.amazon.com/about-aws/whats-new/2016/11/introducing-the-aws-serverless-application-model/), so it must be transformed before you can deploy it.
 
     ```shell
-    aws cloudformation package \
+    aws --region us-east-1 cloudformation package \
         --template-file templates/main.yaml \
         --s3-bucket <your S3 bucket name> \
         --output-template-file packaged.template
@@ -130,7 +130,7 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
 7. Run the following command to deploy the packaged CloudFormation template to a CloudFormation stack:
 
     ```shell
-    aws cloudformation deploy \
+    aws --region us-east-1 cloudformation deploy \
         --stack-name <your CloudFormation stack name> \
         --template-file packaged.template \
         --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
