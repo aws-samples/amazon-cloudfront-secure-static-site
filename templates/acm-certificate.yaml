@@ -11,6 +11,8 @@ Parameters:
     Type: String
   CopyFunction:
     Type: String
+  SubDomain:
+    Type: String
 
 Resources:
   CopyCustomResource:
@@ -21,7 +23,7 @@ Resources:
   Certificate:
     Type: Custom::Certificate
     Properties:
-      DomainName: !Sub '*.${DomainName}'
+      DomainName: !Sub '${SubDomain}.${DomainName}'
       Region: !Ref Region
       ValidationMethod: DNS
       ServiceToken: !Ref 'CFNCustomProvider'
@@ -36,7 +38,7 @@ Resources:
     Type: Custom::CertificateDNSRecord
     Properties:
       CertificateArn: !Ref Certificate
-      DomainName: !Sub '*.${DomainName}'
+      DomainName: !Sub '${SubDomain}.${DomainName}'
       ServiceToken: !Ref 'CFNCustomProvider'
 
   DomainValidationRecord:

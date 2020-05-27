@@ -39,6 +39,7 @@ Resources:
     Properties:
       TemplateURL: ./acm-certificate.yaml
       Parameters:
+        SubDomain: !Ref SubDomain
         DomainName: !Ref DomainName
         CFNCustomProvider: !GetAtt CustomResourceStack.Outputs.CFNCustomProvider
         CopyFunction: !GetAtt CustomResourceStack.Outputs.CopyFunction
@@ -64,6 +65,8 @@ Resources:
           Value: ACFS3
 
 Outputs:
+  SolutionVersion:
+    Value: !FindInMap [Solution, Constants, Version]
   CFNCustomProvider:
     Description: ACM helper function    
     Value: !GetAtt CustomResourceStack.Outputs.CFNCustomProvider
@@ -94,5 +97,3 @@ Outputs:
   CloudFrontDomainName:
     Description: Website address
     Value: !GetAtt CloudFrontStack.Outputs.CloudFrontDomainName
-  SolutionVersion:
-    Value: !FindInMap [Solution, Constants, Version]
