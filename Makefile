@@ -47,4 +47,3 @@ package-function:
 	make clean
 	make package-static
 	cd source/secured-headers/ && zip -r ../../s-headers.zip index.js
-
