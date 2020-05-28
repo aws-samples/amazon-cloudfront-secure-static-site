@@ -1,4 +1,5 @@
 # Amazon CloudFront Secure Static Website
+
 Use this solution to create a secure static website for your registered domain name. With this solution, your website:
 
 - Is hosted on [Amazon S3](https://aws.amazon.com/s3/)
@@ -49,8 +50,6 @@ For more information, see [Mozilla’s web security guidelines](https://infosec.
 
 ## Prerequisites
 You must have a registered domain name, such as example.com, and point it to a Route 53 hosted zone in the same AWS account in which you deploy this solution. For more information, see [Configuring Amazon Route 53 as your DNS service](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html).
-
-> **Note:** This solution can fail if you have an existing ACM certificate for the domain name that you use with this solution. If the existing certificate is not in use, we recommend deleting it before you deploy this solution.
 
 ## Deploy the solution
 To deploy the solution, you use [AWS CloudFormation](https://aws.amazon.com/cloudformation). You can use the CloudFormation console, or download the CloudFormation template to deploy it on your own.
