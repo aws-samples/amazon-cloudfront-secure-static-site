@@ -140,8 +140,10 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
     ```
 ### Updating the site Content Security Policy
 
-To update the Content Security Policy of the site, update the header values located in `source/secured-headers/index.js`. 
-Deploy the solution following the steps described above in [Update the website content locally](#update-the-website-content-locally)
+To change the Content Security Policy of the site:
+
+1. Make your changes to the header values by editing `source/secured-headers/index.js`. 
+1. Deploy the solution by following the steps in [Update the website content locally](#update-the-website-content-locally)
 
 
 ## Contributing
