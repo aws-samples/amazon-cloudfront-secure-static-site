@@ -100,7 +100,8 @@ To download the CloudFormation template to deploy on your own, for example by [u
 
 https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-static-site/latest/main.yaml
 
-## Update the website content locally before deploying the solution
+## Making Changes to the Solution
+### Update the website content locally 
 
 **To customize the website with your own content before deploying the solution**
 
@@ -137,6 +138,11 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
         --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
         --parameter-overrides  DomainName=<your domain name> SubDomain=<your website subdomain>
     ```
+### Updating the site Content Security Policy
+
+To update the Content Security Policy of the site, update the header values located in `source/secured-headers/index.js`. 
+Deploy the solution following the steps described above in [Update the website content locally](#update-the-website-content-locally)
+
 
 ## Contributing
 Contributions are welcome. Please read the [code of conduct](CODE_OF_CONDUCT.md) and the [contributing guidelines](CONTRIBUTING.md).
