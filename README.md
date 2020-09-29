@@ -100,7 +100,7 @@ To download the CloudFormation template to deploy on your own, for example by [u
 
 https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-static-site/latest/main.yaml
 
-## Making Changes to the Solution
+## Customizing the Solution
 ### Update the website content locally 
 
 **To customize the website with your own content before deploying the solution**
