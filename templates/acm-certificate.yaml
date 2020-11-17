@@ -13,6 +13,13 @@ Parameters:
     Type: String
   SubDomain:
     Type: String
+  CreateApex:
+    Type: String
+
+Conditions:
+  CreateApexConfig:  !Equals 
+    - !Ref CreateApex
+    - 'yes'
 
 Resources:
   CopyCustomResource:
@@ -25,7 +32,13 @@ Resources:
     Properties:
       DomainName: !Sub '${SubDomain}.${DomainName}'
       SubjectAlternativeNames:
-      - !Ref DomainName
+        Fn::If:
+          - CreateApexConfig
+          - - Ref: DomainName
+          - Ref: AWS::NoValue
+#      SubjectAlternativeNames:
+#      - !If [ CreateApexConfig, !Ref DomainName, !Ref 'AWS::NoValue' ]
+#      - !Ref DomainName
       Region: !Ref Region
       ValidationMethod: DNS
       ServiceToken: !Ref 'CFNCustomProvider'
@@ -45,6 +58,7 @@ Resources:
 
   apexCertificateDNSRecord:
     Type: Custom::CertificateDNSRecord
+    Condition: CreateApexConfig
     Properties:
       CertificateArn: !Ref Certificate
       DomainName: !Ref DomainName
@@ -65,6 +79,7 @@ Resources:
 
   apexDomainValidationRecord:
     Type: AWS::Route53::RecordSetGroup
+    Condition: CreateApexConfig
     Properties:
       HostedZoneName: !Sub '${DomainName}.'
       RecordSets:

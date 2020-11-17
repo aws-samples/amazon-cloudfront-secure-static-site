@@ -27,6 +27,13 @@ Parameters:
   S3BucketRootArn:
     Description: Content Bucket locator
     Type: String
+  CreateApex: 
+    Type: String
+
+Conditions:
+  CreateApexConfig:  !Equals
+    - !Ref CreateApex
+    - 'yes'
 
 Resources:
   S3BucketPolicy:
@@ -87,7 +94,8 @@ Resources:
       DistributionConfig:
         Aliases:
           - !Sub '${SubDomain}.${DomainName}'
-          - !Ref DomainName
+          - !If [ CreateApexConfig, !Ref DomainName, !Ref 'AWS::NoValue' ]
+#          - !Ref DomainName
         DefaultCacheBehavior:
           Compress: true
           DefaultTTL: 86400
@@ -150,7 +158,15 @@ Resources:
           EvaluateTargetHealth: false
           # The  following HosteZoneId is always used for alias records pointing to CF.
           HostedZoneId: 'Z2FDTNDATAQYW2'
-      - Name: !Ref DomainName
+
+  ApexRoute53RecordSetGroup:
+    DependsOn: Route53RecordSetGroup
+    Condition: CreateApexConfig
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneName: !Sub '${DomainName}.'
+      RecordSets:
+      - Name: !Ref 'DomainName'
         Type: 'A'
         AliasTarget:
           DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
