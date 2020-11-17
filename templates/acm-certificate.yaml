@@ -24,6 +24,8 @@ Resources:
     Type: Custom::Certificate
     Properties:
       DomainName: !Sub '${SubDomain}.${DomainName}'
+      SubjectAlternativeNames:
+      - !Ref DomainName
       Region: !Ref Region
       ValidationMethod: DNS
       ServiceToken: !Ref 'CFNCustomProvider'
@@ -41,6 +43,13 @@ Resources:
       DomainName: !Sub '${SubDomain}.${DomainName}'
       ServiceToken: !Ref 'CFNCustomProvider'
 
+  apexCertificateDNSRecord:
+    Type: Custom::CertificateDNSRecord
+    Properties:
+      CertificateArn: !Ref Certificate
+      DomainName: !Ref DomainName
+      ServiceToken: !Ref 'CFNCustomProvider'
+
   DomainValidationRecord:
     Type: AWS::Route53::RecordSetGroup
     Properties:
@@ -54,10 +63,24 @@ Resources:
           ResourceRecords:
             - !GetAtt CertificateDNSRecord.Value
 
+  apexDomainValidationRecord:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneName: !Sub '${DomainName}.'
+      RecordSets:
+        - Name: !GetAtt apexCertificateDNSRecord.Name
+          Type: !GetAtt apexCertificateDNSRecord.Type
+          TTL: 60
+          Weight: 1
+          SetIdentifier: !Ref Certificate
+          ResourceRecords:
+            - !GetAtt apexCertificateDNSRecord.Value
+
 Outputs:
   DNSRecord:
     Description: DNS record
     Value: !Sub '${CertificateDNSRecord.Name} ${CertificateDNSRecord.Type} ${CertificateDNSRecord.Value}'
+
   CertificateArn: 
     Description: Issued certificate
     Value: !Ref Certificate

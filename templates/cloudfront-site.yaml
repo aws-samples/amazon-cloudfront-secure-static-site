@@ -87,6 +87,7 @@ Resources:
       DistributionConfig:
         Aliases:
           - !Sub '${SubDomain}.${DomainName}'
+          - !Ref DomainName
         DefaultCacheBehavior:
           Compress: true
           DefaultTTL: 86400
@@ -143,6 +144,13 @@ Resources:
       HostedZoneName: !Sub '${DomainName}.'
       RecordSets:
       - Name: !Sub '${SubDomain}.${DomainName}'
+        Type: 'A'
+        AliasTarget:
+          DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
+          EvaluateTargetHealth: false
+          # The  following HosteZoneId is always used for alias records pointing to CF.
+          HostedZoneId: 'Z2FDTNDATAQYW2'
+      - Name: !Ref DomainName
         Type: 'A'
         AliasTarget:
           DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
