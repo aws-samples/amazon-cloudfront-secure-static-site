@@ -28,7 +28,7 @@ exports.staticHandler = function(event, context) {
             ACL: "private",
         }).promise();
     })).then((msg) => {
-        respond(event, context, SUCCESS, {Message: msg});
+        respond(event, context, SUCCESS, {});
     }).catch(err => {
         respond(event, context, FAILED, {Message: err});
     });
