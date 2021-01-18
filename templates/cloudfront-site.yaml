@@ -95,7 +95,6 @@ Resources:
         Aliases:
           - !Sub '${SubDomain}.${DomainName}'
           - !If [ CreateApexConfig, !Ref DomainName, !Ref 'AWS::NoValue' ]
-#          - !Ref DomainName
         DefaultCacheBehavior:
           Compress: true
           DefaultTTL: 86400

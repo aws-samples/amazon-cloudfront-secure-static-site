@@ -36,9 +36,6 @@ Resources:
           - CreateApexConfig
           - - Ref: DomainName
           - Ref: AWS::NoValue
-#      SubjectAlternativeNames:
-#      - !If [ CreateApexConfig, !Ref DomainName, !Ref 'AWS::NoValue' ]
-#      - !Ref DomainName
       Region: !Ref Region
       ValidationMethod: DNS
       ServiceToken: !Ref 'CFNCustomProvider'
