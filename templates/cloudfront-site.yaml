@@ -160,7 +160,6 @@ Resources:
           HostedZoneId: 'Z2FDTNDATAQYW2'
 
   ApexRoute53RecordSetGroup:
-    DependsOn: Route53RecordSetGroup
     Condition: CreateApexConfig
     Type: AWS::Route53::RecordSetGroup
     Properties:
