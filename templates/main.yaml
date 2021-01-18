@@ -24,6 +24,11 @@ Parameters:
   DomainName:
     Description: The part of a website address after your SubDomain - e.g. example.com
     Type: String
+  CreateApex:
+    Description: Create an Apex Alias in CloudFront distribution - yes/no
+    Type: String
+    Default: 'no'
+    AllowedValues: ['yes','no']
 
 Resources:
   CustomResourceStack:
@@ -43,6 +48,7 @@ Resources:
         DomainName: !Ref DomainName
         CFNCustomProvider: !GetAtt CustomResourceStack.Outputs.CFNCustomProvider
         CopyFunction: !GetAtt CustomResourceStack.Outputs.CopyFunction
+        CreateApex: !Ref CreateApex
       Tags:
         - Key: Solution
           Value: ACFS3
@@ -55,6 +61,7 @@ Resources:
         CertificateArn: !GetAtt AcmCertificateStack.Outputs.CertificateArn
         DomainName: !Ref DomainName
         SubDomain: !Ref SubDomain
+        CreateApex: !Ref CreateApex
         S3BucketRoot: !GetAtt CustomResourceStack.Outputs.S3BucketRoot
         S3BucketRootName: !GetAtt CustomResourceStack.Outputs.S3BucketRootName
         S3BucketRootArn: !GetAtt CustomResourceStack.Outputs.S3BucketRootArn

@@ -71,6 +71,7 @@ To deploy the solution, you use [AWS CloudFormation](https://aws.amazon.com/clou
 
     - **SubDomain:** The subdomain for your registered domain name. Viewers use the subdomain to access your website, for example: www.example.com. We recommend using the default value of **www** as the subdomain.
     - **DomainName:** Your registered domain name, such as example.com. This domain must be pointed to a Route 53 hosted zone.
+    - **CreateApex:** Optionally create an Alias to the domain apex (example.com) in your CloudFront configuration.  Default is [no]
 
    After entering values, choose the **Next** button.
 5. On the **Configure stack options** page, you can optionally [add tags and other stack options](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-add-tags.html). When finished, choose the **Next** button.
@@ -129,7 +130,7 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
         --output-template-file packaged.template
     ```
 
-7. Run the following command to deploy the packaged CloudFormation template to a CloudFormation stack:
+7. Run the following command to deploy the packaged CloudFormation template to a CloudFormation stack.  To optionally deploy the stack with a domain apex skip this section and proceed to [Step 8] below.
 
     ```shell
     aws --region us-east-1 cloudformation deploy \
@@ -138,6 +139,18 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
         --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
         --parameter-overrides  DomainName=<your domain name> SubDomain=<your website subdomain>
     ```
+    
+8. [Optional] Run the following command to deploy the packaged CloudFormation template to a CloudFormation stack with a domain apex.
+
+    ```shell
+    aws --region us-east-1 cloudformation deploy \
+        --stack-name <your CloudFormation stack name> \
+        --template-file packaged.template \
+        --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
+        --parameter-overrides  DomainName=<your domain name> SubDomain=<your website subdomain> CreateApex=yes
+    ```
+
+
 ### Updating the site Content Security Policy
 
 To change the Content Security Policy of the site:
