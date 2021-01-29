@@ -30,26 +30,47 @@ jobs:
         run: pip install virtualenv
       - name: Install dependencies
         run: make setup-predeploy
-      # Create Release
-      - name: Set version
+      # Release if required
+      - name: Setup versions in env variables
         id: version
-        run: echo ::set-env name=THIS_VERSION::$(make version | sed s/^v//)
-      - name: Set latest
-        id: latest
-        run: echo ::set-env name=LATEST::$(git describe --tags $(git rev-list --tags --max-count=1) | sed s/^v// 2> /dev/null || echo '0')      
+        run: |
+          function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+          echo "THIS_VERSION=$(make version | sed s/^v//)" >> $GITHUB_ENV
+          echo "THIS_VERSION_COMPARABLE=$(version $(make version | sed s/^v//))" >> $GITHUB_ENV
+          echo "LATEST_VERSION_COMPARABLE=$(version $(git describe --tags $(git rev-list --tags --max-count=1) | sed s/^v// 2> /dev/null || echo '0'))" >> $GITHUB_ENV
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
-        if: env.THIS_VERSION > env.LATEST
+        if: env.THIS_VERSION_COMPARABLE > env.LATEST_VERSION_COMPARABLE
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           tag_name: v${{ env.THIS_VERSION }}
           release_name: Release v${{ env.THIS_VERSION }}
           body: |
             See the CHANGELOG for a list of features included in this release
           draft: false
-          prerelease: false
+          prerelease: true
+#      # Create Release
+#      - name: Set version
+#        id: version
+#        run: echo ::set-env name=THIS_VERSION::$(make version | sed s/^v//)
+#      - name: Set latest
+#        id: latest
+#        run: echo ::set-env name=LATEST::$(git describe --tags $(git rev-list --tags --max-count=1) | sed s/^v// 2> /dev/null || echo '0')      
+#      - name: Create Release
+#        id: create_release
+#        uses: actions/create-release@latest
+#        if: env.THIS_VERSION > env.LATEST
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          tag_name: v${{ env.THIS_VERSION }}
+#          release_name: Release v${{ env.THIS_VERSION }}
+#          body: |
+#            See the CHANGELOG for a list of features included in this release
+#          draft: false
+#          prerelease: false
       # Package and Upload Archive
       - name: Pre-Package Copy Function
         run: cd source/witch/ && npm install --prefix nodejs mime-types && cp witch.js nodejs/node_modules/ && zip -r ../../witch.zip nodejs  && cd ../../
