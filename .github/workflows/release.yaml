@@ -51,26 +51,6 @@ jobs:
             See the CHANGELOG for a list of features included in this release
           draft: false
           prerelease: true
-#      # Create Release
-#      - name: Set version
-#        id: version
-#        run: echo ::set-env name=THIS_VERSION::$(make version | sed s/^v//)
-#      - name: Set latest
-#        id: latest
-#        run: echo ::set-env name=LATEST::$(git describe --tags $(git rev-list --tags --max-count=1) | sed s/^v// 2> /dev/null || echo '0')      
-#      - name: Create Release
-#        id: create_release
-#        uses: actions/create-release@latest
-#        if: env.THIS_VERSION > env.LATEST
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          tag_name: v${{ env.THIS_VERSION }}
-#          release_name: Release v${{ env.THIS_VERSION }}
-#          body: |
-#            See the CHANGELOG for a list of features included in this release
-#          draft: false
-#          prerelease: false
       # Package and Upload Archive
       - name: Pre-Package Copy Function
         run: cd source/witch/ && npm install --prefix nodejs mime-types && cp witch.js nodejs/node_modules/ && zip -r ../../witch.zip nodejs  && cd ../../
