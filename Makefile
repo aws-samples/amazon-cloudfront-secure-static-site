@@ -21,7 +21,7 @@ endif
 
 setup-predeploy:
 	virtualenv venv
-	source efc/bin/activate
+	source venv/bin/activate
 	pip install cfn-flip==1.2.2
 
 clean:
