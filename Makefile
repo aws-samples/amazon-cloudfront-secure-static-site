@@ -21,17 +21,24 @@ endif
 
 setup-predeploy:
 	virtualenv venv
-	source venv/bin/activate
+	source efc/bin/activate
 	pip install cfn-flip==1.2.2
 
 clean:
-	rm -rf *.zip source/witch/nodejs/node_modules/
+	rm -rf *.zip source/witch/nodejs/node_modules/ source/lambda-layers/*.zip
 
 test-cfn:
 	cfn_nag templates/*.yaml --blacklist-path ci/cfn_nag_blacklist.yaml
 
 version:
 	@echo $(shell cfn-flip templates/main.yaml | python -c 'import sys, json; print(json.load(sys.stdin)["Mappings"]["Solution"]["Constants"]["Version"])')
+
+requirements:
+	for i in `ls -d source/lambda-layers/*` ; do \
+		echo $$i >> /tmp/a.out ; \
+		pip install -r $$i/requirements.txt -t $$i/python/ ; \
+		zip -q -r9 $$i.zip $$i/python ; \
+	done
 
 package:
 	zip -r packaged.zip templates backend cfn-publish.config build.zip -x **/__pycache* -x *settings.js
@@ -45,5 +52,6 @@ package-static:
 
 package-function:
 	make clean
+	make requirements
 	make package-static
 	cd source/secured-headers/ && zip -r ../../s-headers.zip index.js
