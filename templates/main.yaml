@@ -31,6 +31,14 @@ Parameters:
     AllowedValues: ['yes','no']
 
 Resources:
+  LambaLayersStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./lambda-layers.yaml
+      Tags:
+        - Key: Solution
+          Value: ACFS3
+
   CustomResourceStack:
     Type: AWS::CloudFormation::Stack
     Properties:
