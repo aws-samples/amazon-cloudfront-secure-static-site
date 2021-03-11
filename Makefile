@@ -34,10 +34,11 @@ version:
 	@echo $(shell cfn-flip templates/main.yaml | python -c 'import sys, json; print(json.load(sys.stdin)["Mappings"]["Solution"]["Constants"]["Version"])')
 
 requirements:
-	for i in `ls -d source/lambda-layers/*` ; do \
-		echo $$i >> /tmp/a.out ; \
-		pip install -r $$i/requirements.txt -t $$i/python/ ; \
-		zip -q -r9 $$i.zip $$i/python ; \
+	cd source/lambda_layers ; \
+	for i in `ls -d *` ; do \
+		cd $$i ; \
+		pip install -r requirements.txt -t ./python/ ; \
+		zip -q -r9 ../$$i.zip python ; \
 	done
 
 package:
@@ -52,6 +53,5 @@ package-static:
 
 package-function:
 	make clean
-	make requirements
 	make package-static
-	cd source/secured-headers/ && zip -r ../../s-headers.zip index.js
+	cd source/secured-headers/ && zip -r ../../create_regional_edge_lambda.zip create_regional_edge_lambda.py
