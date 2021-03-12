@@ -38,9 +38,9 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Description: Custom Lambda resource for the AWS Perspective Stack
-      Handler: create_regional_edge_lambda.handler
+      Handler: index.handler
       PackageType: Zip
-      CodeUri: ../create_regional_edge_lambda.zip
+      CodeUri: ../index.zip
       Layers:
         - !Ref 'AWSSDK'
         - !Ref 'Decorators'

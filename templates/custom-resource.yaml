@@ -2,6 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: ACFS3 - Cert Provider with DNS validation
 Transform: AWS::Serverless-2016-10-31
 
+
 Resources:
   LambdaPermission:
     Type: AWS::Lambda::Permission
@@ -59,15 +60,17 @@ Resources:
       - CFNCustomProvider
 
   CFNCustomProvider:
-    Type: AWS::Serverless::Function
+    Type: AWS::Lambda::Function
     Properties:
-      CodeUri: s3://binxio-public-us-east-1/lambdas/cfn-certificate-provider-0.2.4.zip
+      Code: 
+        S3Bucket: !Sub 'binxio-public-${AWS::Region}'
+        S3Key: 'lambdas/cfn-certificate-provider-0.2.4.zip'
       Description: CFN Certificate Domain Resource Record Provider
       MemorySize: 128
       Handler: provider.handler
       Timeout: 300
       Role: !GetAtt LambdaRole.Arn
-      Runtime: python3.6
+      Runtime: python3.8
 
   S3BucketLogs:
     Type: AWS::S3::Bucket
@@ -172,3 +175,4 @@ Outputs:
   CopyFunction:
     Description: S3 helper function
     Value: !GetAtt CopyFunction.Arn
+

@@ -54,5 +54,6 @@ package-static:
 
 package-function:
 	make clean
+	make requirements
 	make package-static
-	cd source/secured-headers/ && zip -r ../../create_regional_edge_lambda.zip create_regional_edge_lambda.py
+	cd source/secured-headers/ && zip -r ../../index.zip index.py
