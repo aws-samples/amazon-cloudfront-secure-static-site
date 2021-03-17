@@ -1,12 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: ACFS3 - Certificate creation
-
 Parameters:
   DomainName:
     Type: String
   Region:
     Type: String
-    Default: 'us-east-1'
+    Default: us-east-1
   CFNCustomProvider:
     Type: String
   CopyFunction:
@@ -15,84 +14,73 @@ Parameters:
     Type: String
   CreateApex:
     Type: String
-
 Conditions:
-  CreateApexConfig:  !Equals 
-    - !Ref CreateApex
+  CreateApexConfig: !Equals
+    - !Ref 'CreateApex'
     - 'yes'
-
 Resources:
   CopyCustomResource:
-    Type: "AWS::CloudFormation::CustomResource"
+    Type: AWS::CloudFormation::CustomResource
     Properties:
-      ServiceToken: !Ref CopyFunction
-
+      ServiceToken: !Ref 'CopyFunction'
   Certificate:
     Type: Custom::Certificate
     Properties:
       DomainName: !Sub '${SubDomain}.${DomainName}'
-      SubjectAlternativeNames:
-        Fn::If:
-          - CreateApexConfig
-          - - Ref: DomainName
-          - Ref: AWS::NoValue
-      Region: !Ref Region
+      SubjectAlternativeNames: !If
+        - CreateApexConfig
+        - - !Ref 'DomainName'
+        - !Ref 'AWS::NoValue'
+      Region: !Ref 'Region'
       ValidationMethod: DNS
       ServiceToken: !Ref 'CFNCustomProvider'
-
   IssuedCertificate:
     Type: Custom::IssuedCertificate
     Properties:
-      CertificateArn: !Ref Certificate
+      CertificateArn: !Ref 'Certificate'
       ServiceToken: !Ref 'CFNCustomProvider'
-
   CertificateDNSRecord:
     Type: Custom::CertificateDNSRecord
     Properties:
-      CertificateArn: !Ref Certificate
+      CertificateArn: !Ref 'Certificate'
       DomainName: !Sub '${SubDomain}.${DomainName}'
       ServiceToken: !Ref 'CFNCustomProvider'
-
   apexCertificateDNSRecord:
     Type: Custom::CertificateDNSRecord
     Condition: CreateApexConfig
     Properties:
-      CertificateArn: !Ref Certificate
-      DomainName: !Ref DomainName
+      CertificateArn: !Ref 'Certificate'
+      DomainName: !Ref 'DomainName'
       ServiceToken: !Ref 'CFNCustomProvider'
-
   DomainValidationRecord:
     Type: AWS::Route53::RecordSetGroup
     Properties:
       HostedZoneName: !Sub '${DomainName}.'
       RecordSets:
-        - Name: !GetAtt CertificateDNSRecord.Name
-          Type: !GetAtt CertificateDNSRecord.Type
-          TTL: 60
+        - Name: !GetAtt 'CertificateDNSRecord.Name'
+          Type: !GetAtt 'CertificateDNSRecord.Type'
+          TTL: '60'
           Weight: 1
-          SetIdentifier: !Ref Certificate
+          SetIdentifier: !Ref 'Certificate'
           ResourceRecords:
-            - !GetAtt CertificateDNSRecord.Value
-
+            - !GetAtt 'CertificateDNSRecord.Value'
   apexDomainValidationRecord:
     Type: AWS::Route53::RecordSetGroup
     Condition: CreateApexConfig
     Properties:
       HostedZoneName: !Sub '${DomainName}.'
       RecordSets:
-        - Name: !GetAtt apexCertificateDNSRecord.Name
-          Type: !GetAtt apexCertificateDNSRecord.Type
-          TTL: 60
+        - Name: !GetAtt 'apexCertificateDNSRecord.Name'
+          Type: !GetAtt 'apexCertificateDNSRecord.Type'
+          TTL: '60'
           Weight: 1
-          SetIdentifier: !Ref Certificate
+          SetIdentifier: !Ref 'Certificate'
           ResourceRecords:
-            - !GetAtt apexCertificateDNSRecord.Value
-
+            - !GetAtt 'apexCertificateDNSRecord.Value'
 Outputs:
   DNSRecord:
     Description: DNS record
     Value: !Sub '${CertificateDNSRecord.Name} ${CertificateDNSRecord.Type} ${CertificateDNSRecord.Value}'
-
-  CertificateArn: 
+  CertificateArn:
     Description: Issued certificate
-    Value: !Ref Certificate
+    Value: !Ref 'Certificate'

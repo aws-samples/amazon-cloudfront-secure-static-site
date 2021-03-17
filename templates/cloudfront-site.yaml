@@ -1,7 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: ACFS3 - CloudFront with Header Security and site content
-Transform: 'AWS::Serverless-2016-10-31'
-
+Transform: AWS::Serverless-2016-10-31
 Parameters:
   CertificateArn:
     Description: Certificate locater
@@ -27,14 +26,16 @@ Parameters:
   S3BucketRootArn:
     Description: Content Bucket locator
     Type: String
-  CreateApex: 
+  CreateApex:
     Type: String
-
+  StackName:
+    Type: String
+  SecuredEdgeLambdaArn:
+    Type: String
 Conditions:
-  CreateApexConfig:  !Equals
-    - !Ref CreateApex
+  CreateApexConfig: !Equals
+    - !Ref 'CreateApex'
     - 'yes'
-
 Resources:
   S3BucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -48,139 +49,155 @@ Resources:
             Effect: Allow
             Resource: !Sub '${S3BucketRootArn}/*'
             Principal:
-              CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
-
-  LambdaEdgeFunction:
-    DeletionPolicy: Retain
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: index.handler
-      Role: !GetAtt LambdaEdgeFunctionRole.Arn
-      CodeUri: ../s-headers.zip
-      Runtime: 'nodejs12.x'
-      Timeout: 25
-
-  Lambdaversion:
-    Type: AWS::Lambda::Version
-    Properties: 
-      FunctionName: !Ref LambdaEdgeFunction
-      Description: v1
-
-  LambdaEdgeFunctionRole:
+              CanonicalUser: !GetAtt 'CloudFrontOriginAccessIdentity.S3CanonicalUserId'
+  CloudFrontFunctionRole:
     Type: AWS::IAM::Role
     Properties:
-      Path: '/'
+      Path: /
       ManagedPolicyArns:
-          - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
-          -
-            Sid: 'AllowLambdaServiceToAssumeRole'
-            Effect: 'Allow'
+          - Sid: AllowLambdaServiceToAssumeRole
+            Effect: Allow
             Action:
-              - 'sts:AssumeRole'
+              - sts:AssumeRole
             Principal:
               Service:
-              - 'lambda.amazonaws.com'
-              - 'edgelambda.amazonaws.com'
+                - lambda.amazonaws.com
+                - edgelambda.amazonaws.com
+                - cloudfront.amazonaws.com
+      Policies:
+        - PolicyName: CloudfrontPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:GetFunction
+                  - lambda:GetFunctionConfiguration
+                  - lambda:GetFunctionEventInvokeConfig
+                  - lambda:GetLayerVersion
+                  - lambda:GetLayerVersionPolicy
+                  - lambda:InvokeFunction
+                  - lambda:DisableReplication
+                  - lambda:EnableReplication
+                  - lambda:GetAlias
+                Resource: !Sub 'arn:${AWS::Partition}:lambda:us-east-1:${AWS::AccountId}:function:*'
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogGroups
+                Resource: arn:aws:logs:*:*:*
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:GetObjectAcl
+                  - s3:GetBucketAcl
+                  - s3:PutBucketAcl
+                Resource: !Sub 'arn:${AWS::Partition}:s3:::*'
+              - Effect: Allow
+                Action:
+                  - cloudfront:CreateDistribution
+                  - cloudfront:CreateDistributionWithTags
+                  - cloudfront:DeleteDistribution
+                  - cloudfront:GetDistribution
+                  - cloudfront:GetDistributionConfig
+                  - cloudfront:ListTagsForResource
+                  - cloudfront:TagResource
+                  - cloudfront:UntagResource
+                  - cloudfront:UpdateDistribution
+                  - cloudfront:ListCloudFrontOriginAccessIdentities
+                Resource: !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/*'
+              - Effect: Allow
+                Action:
+                  - cloudfront:CreateCloudFrontOriginAccessIdentity
+                  - cloudfront:DeleteCloudFrontOriginAccessIdentity
+                  - cloudfront:GetCloudFrontOriginAccessIdentity
+                  - cloudfront:GetCloudFrontOriginAccessIdentityConfig
+                  - cloudfront:UpdateCloudFrontOriginAccessIdentity
+                Resource: !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:origin-access-identity/*'
+              - Effect: Allow
+                Action:
+                  - cloudfront:CreateCachePolicy
+                  - cloudfront:DeleteCachePolicy
+                  - cloudfront:GetCachePolicy
+                  - cloudfront:ListCachePolicies
+                  - cloudfront:UpdateCachePolicy
+                  - cloudfront:GetCloudFrontOriginAccessIdentityConfig
+                Resource: !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:cache-policy/*'
       Tags:
         - Key: Solution
           Value: ACFS3
-
-  CloudFrontDistribution:
-    Type: AWS::CloudFront::Distribution
+  CloudfrontCustomFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      DistributionConfig:
-        Aliases:
-          - !Sub '${SubDomain}.${DomainName}'
-          - !If [ CreateApexConfig, !Ref DomainName, !Ref 'AWS::NoValue' ]
-        DefaultCacheBehavior:
-          Compress: true
-          DefaultTTL: 86400
-          ForwardedValues:
-            QueryString: true
-          MaxTTL: 31536000
-          TargetOriginId: !Sub 'S3-${AWS::StackName}-root'
-          LambdaFunctionAssociations:
-            - 
-              EventType: origin-response
-              LambdaFunctionARN: !Ref Lambdaversion
-          ViewerProtocolPolicy: 'redirect-to-https'
-        CustomErrorResponses:
-          - ErrorCachingMinTTL: 60
-            ErrorCode: 404
-            ResponseCode: 404
-            ResponsePagePath: '/404.html'
-          - ErrorCachingMinTTL: 60
-            ErrorCode: 403
-            ResponseCode: 403
-            ResponsePagePath: '/403.html'
-        Enabled: true
-        HttpVersion: 'http2'
-        DefaultRootObject: 'index.html'
-        IPV6Enabled: true
-        Logging:
-          Bucket: !Ref 'S3BucketLogsName'
-          IncludeCookies: false
-          Prefix: 'cdn/'
-        Origins:
-          - DomainName: !Ref 'S3BucketRootName'
-            Id: !Sub 'S3-${AWS::StackName}-root'
-            S3OriginConfig:
-              OriginAccessIdentity:
-                !Join ['', ['origin-access-identity/cloudfront/', !Ref CloudFrontOriginAccessIdentity]]
-        PriceClass: 'PriceClass_All'
-        ViewerCertificate:
-          AcmCertificateArn: !Ref 'CertificateArn'
-          MinimumProtocolVersion: 'TLSv1.1_2016'
-          SslSupportMethod: 'sni-only'
-      Tags:
-        - Key: Solution
-          Value: ACFS3
-
+      Handler: index.handler
+      Role: !GetAtt 'CloudFrontFunctionRole.Arn'
+      CodeUri: ../source/python/cloudfront
+      Runtime: python3.8
+      Timeout: 300
+      Description: manage cloudfront resources faster than native
+  CloudFrontDistribution:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      loglevel: info
+      Apex: !Ref 'CreateApex'
+      Subdomain: !Ref 'SubDomain'
+      Domain: !Ref 'DomainName'
+      StackName: !Ref 'StackName'
+      SiteBucketRootName: !Ref 'S3BucketRootName'
+      SiteBucketArn: !Ref 'S3BucketRootArn'
+      LogsBucket: !Ref 'S3BucketLogsName'
+      CertArn: !Ref 'CertificateArn'
+      OAI: !Ref 'CloudFrontOriginAccessIdentity'
+      SecureEdgeFunctionArn: !Ref 'SecuredEdgeLambdaArn'
+      RoleArn: !GetAtt 'CloudFrontFunctionRole.Arn'
+      ServiceToken: !GetAtt 'CloudfrontCustomFunction.Arn'
   CloudFrontOriginAccessIdentity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
       CloudFrontOriginAccessIdentityConfig:
         Comment: !Sub 'CloudFront OAI for ${SubDomain}.${DomainName}'
-        
   Route53RecordSetGroup:
     Type: AWS::Route53::RecordSetGroup
     Properties:
       HostedZoneName: !Sub '${DomainName}.'
       RecordSets:
-      - Name: !Sub '${SubDomain}.${DomainName}'
-        Type: 'A'
-        AliasTarget:
-          DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
-          EvaluateTargetHealth: false
-          # The  following HosteZoneId is always used for alias records pointing to CF.
-          HostedZoneId: 'Z2FDTNDATAQYW2'
-
+        - Name: !Sub '${SubDomain}.${DomainName}'
+          Type: A
+          AliasTarget:
+            DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
+            EvaluateTargetHealth: false
+            HostedZoneId: Z2FDTNDATAQYW2
   ApexRoute53RecordSetGroup:
     Condition: CreateApexConfig
     Type: AWS::Route53::RecordSetGroup
     Properties:
       HostedZoneName: !Sub '${DomainName}.'
       RecordSets:
-      - Name: !Ref 'DomainName'
-        Type: 'A'
-        AliasTarget:
-          DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
-          EvaluateTargetHealth: false
-          # The  following HosteZoneId is always used for alias records pointing to CF.
-          HostedZoneId: 'Z2FDTNDATAQYW2'
-
+        - Name: !Ref 'DomainName'
+          Type: A
+          AliasTarget:
+            DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
+            EvaluateTargetHealth: false
+            HostedZoneId: Z2FDTNDATAQYW2
 Outputs:
-  LambdaEdgeFunctionVersion:
-    Description: Security Lambda version
-    Value: !Ref Lambdaversion
-
   CloudFrontDistribution:
     Description: CloudFront distribution
-    Value: !GetAtt CloudFrontDistribution.DomainName
-
+    Value: !GetAtt 'CloudFrontDistribution.DomainName'
+  DistributionId:
+    Description: CloudFront distribution
+    Value: !GetAtt 'CloudFrontDistribution.DistroId'
+  Status:
+    Description: CloudFront distribution
+    Value: !GetAtt 'CloudFrontDistribution.Status'
+  Etag:
+    Description: CloudFront distribution
+    Value: !GetAtt 'CloudFrontDistribution.ETag'
   CloudFrontDomainName:
     Description: Website address
     Value: !Sub '${SubDomain}.${DomainName}'

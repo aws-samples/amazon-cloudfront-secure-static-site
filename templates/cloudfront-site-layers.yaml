@@ -1,7 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: ACFS3 - CloudFront with Header Security and site content
-Transform: 'AWS::Serverless-2016-10-31'
-
+Transform: AWS::Serverless-2016-10-31
 Parameters:
   LogLevel:
     Type: String
@@ -28,11 +27,10 @@ Parameters:
     Description: Required library
   CloneRegion:
     Type: String
-    Description: Target for Lambda function copy  
+    Description: Target for Lambda function copy
   ResourcePrefix:
     Type: String
     Description: The prefix used for uniquely named resources
-
 Resources:
   SecuredEdgeLambdaFunction:
     Type: AWS::Serverless::Function
@@ -45,24 +43,21 @@ Resources:
         - !Ref 'AWSSDK'
         - !Ref 'Decorators'
         - !Ref 'BotoUtils'
-        - !Ref 'CustomResourceHelper'      
+        - !Ref 'CustomResourceHelper'
       Role: !GetAtt 'RegionalEdgeLambdaFunctionRole.Arn'
       Timeout: 3
       Runtime: python3.8
-
-
   SecuredEdgeLambda:
     Type: Custom::Setup
     Properties:
-      ServiceToken: !GetAtt SecuredEdgeLambdaFunction.Arn
-      LogLevel: !Ref LogLevel
-      RoleArn: !GetAtt LambdaEdgeFunctionRole.Arn
-      ResourcePrefix: !Ref ResourcePrefix
-
+      ServiceToken: !GetAtt 'SecuredEdgeLambdaFunction.Arn'
+      LogLevel: !Ref 'LogLevel'
+      RoleArn: !GetAtt 'LambdaEdgeFunctionRole.Arn'
+      ResourcePrefix: !Ref 'ResourcePrefix'
   LambdaEdgeFunctionRole:
     Type: AWS::IAM::Role
     Properties:
-      Path: '/'
+      Path: /
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       AssumeRolePolicyDocument:
@@ -75,7 +70,6 @@ Resources:
               Service:
                 - lambda.amazonaws.com
                 - edgelambda.amazonaws.com
-
   RegionalEdgeLambdaFunctionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -102,3 +96,6 @@ Resources:
               - Action: iam:PassRole
                 Resource: !GetAtt 'LambdaEdgeFunctionRole.Arn'
                 Effect: Allow
+Outputs:
+  SecuredEdgeLambdaArn:
+    Value: !GetAtt 'SecuredEdgeLambda.FunctionArnWithVersion'

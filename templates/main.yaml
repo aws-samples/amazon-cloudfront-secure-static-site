@@ -1,6 +1,5 @@
-AWSTemplateFormatVersion: 2010-09-09
+AWSTemplateFormatVersion: '2010-09-09'
 Description: ACFS3 - S3 Static site with CF and ACM (uksb-1qnk6ni7b) (version:v0.5)
-
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -9,15 +8,14 @@ Metadata:
         Parameters:
           - SubDomain
           - DomainName
-
 Mappings:
   Solution:
     Constants:
-      Version: 'v0.5'
-
+      Version: v0.5
 Parameters:
   SubDomain:
-    Description: The part of a website address before your DomainName - e.g. www or img
+    Description: The part of a website address before your DomainName - e.g. www or
+      img
     Type: String
     Default: www
     AllowedPattern: ^[^.]*$
@@ -28,7 +26,9 @@ Parameters:
     Description: Create an Apex Alias in CloudFront distribution - yes/no
     Type: String
     Default: 'no'
-    AllowedValues: ['yes','no']
+    AllowedValues:
+      - 'yes'
+      - 'no'
   CloneRegion:
     Description: Target for Lambda function copy
     Type: String
@@ -37,7 +37,6 @@ Parameters:
     Description: The prefix used for uniquely named resources
     Type: String
     Default: CFSS
-
 Resources:
   LayerStack:
     Type: AWS::CloudFormation::Stack
@@ -46,7 +45,6 @@ Resources:
       Tags:
         - Key: Solution
           Value: ACFS3
-
   CustomResourceStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -54,81 +52,76 @@ Resources:
       Tags:
         - Key: Solution
           Value: ACFS3
-
   AcmCertificateStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: ./acm-certificate.yaml
       Parameters:
-        SubDomain: !Ref SubDomain
-        DomainName: !Ref DomainName
-        CFNCustomProvider: !GetAtt CustomResourceStack.Outputs.CFNCustomProvider
-        CopyFunction: !GetAtt CustomResourceStack.Outputs.CopyFunction
-        CreateApex: !Ref CreateApex
+        SubDomain: !Ref 'SubDomain'
+        DomainName: !Ref 'DomainName'
+        CFNCustomProvider: !GetAtt 'CustomResourceStack.Outputs.CFNCustomProvider'
+        CopyFunction: !GetAtt 'CustomResourceStack.Outputs.CopyFunction'
+        CreateApex: !Ref 'CreateApex'
       Tags:
         - Key: Solution
           Value: ACFS3
-
   CloudFrontLayerStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: ./cloudfront-site-layers.yaml
       Parameters:
-        AWSSDK: !GetAtt LayerStack.Outputs.AWSSDK
-        Decorators: !GetAtt LayerStack.Outputs.Decorators
-        BotoUtils: !GetAtt LayerStack.Outputs.BotoUtils
-        CustomResourceHelper: !GetAtt LayerStack.Outputs.CustomResourceHelper
-        CloneRegion: !Ref CloneRegion
-        ResourcePrefix: !Ref ResourcePrefix
-
-  # CloudFrontStack:
-  #   Type: AWS::CloudFormation::Stack
-  #   Properties:
-  #     TemplateURL: ./cloudfront-site.yaml
-  #     Parameters:
-  #       CertificateArn: !GetAtt AcmCertificateStack.Outputs.CertificateArn
-  #       DomainName: !Ref DomainName
-  #       SubDomain: !Ref SubDomain
-  #       CreateApex: !Ref CreateApex
-  #       S3BucketRoot: !GetAtt CustomResourceStack.Outputs.S3BucketRoot
-  #       S3BucketRootName: !GetAtt CustomResourceStack.Outputs.S3BucketRootName
-  #       S3BucketRootArn: !GetAtt CustomResourceStack.Outputs.S3BucketRootArn
-  #       S3BucketLogs: !GetAtt CustomResourceStack.Outputs.S3BucketLogs
-  #       S3BucketLogsName: !GetAtt CustomResourceStack.Outputs.S3BucketLogsName
-  #     Tags:
-  #       - Key: Solution
-  #         Value: ACFS3
-
+        AWSSDK: !GetAtt 'LayerStack.Outputs.AWSSDK'
+        Decorators: !GetAtt 'LayerStack.Outputs.Decorators'
+        BotoUtils: !GetAtt 'LayerStack.Outputs.BotoUtils'
+        CustomResourceHelper: !GetAtt 'LayerStack.Outputs.CustomResourceHelper'
+        CloneRegion: !Ref 'CloneRegion'
+        ResourcePrefix: !Ref 'ResourcePrefix'
+      Tags:
+        - Key: Solution
+          Value: ACFS3
+  CloudFrontResourceStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./cloudfront-site.yaml
+      Parameters:
+        CreateApex: !Ref 'CreateApex'
+        SubDomain: !Ref 'SubDomain'
+        DomainName: !Ref 'DomainName'
+        StackName: !Sub '${AWS::StackName}'
+        S3BucketLogs: !GetAtt 'CustomResourceStack.Outputs.S3BucketLogs'
+        S3BucketRoot: !GetAtt 'CustomResourceStack.Outputs.S3BucketRoot'
+        S3BucketLogsName: !GetAtt 'CustomResourceStack.Outputs.S3BucketLogsName'
+        S3BucketRootName: !GetAtt 'CustomResourceStack.Outputs.S3BucketRootName'
+        S3BucketRootArn: !GetAtt 'CustomResourceStack.Outputs.S3BucketRootArn'
+        CertificateArn: !GetAtt 'AcmCertificateStack.Outputs.CertificateArn'
+        SecuredEdgeLambdaArn: !GetAtt 'CloudFrontLayerStack.Outputs.SecuredEdgeLambdaArn'
+      Tags:
+        - Key: Solution
+          Value: ACFS3
 Outputs:
   SolutionVersion:
-    Value: !FindInMap [Solution, Constants, Version]
+    Value: !FindInMap
+      - Solution
+      - Constants
+      - Version
   CFNCustomProvider:
-    Description: ACM helper function    
-    Value: !GetAtt CustomResourceStack.Outputs.CFNCustomProvider
+    Description: ACM helper function
+    Value: !GetAtt 'CustomResourceStack.Outputs.CFNCustomProvider'
   CopyFunction:
-    Description: S3 helper function    
-    Value: !GetAtt CustomResourceStack.Outputs.CopyFunction
+    Description: S3 helper function
+    Value: !GetAtt 'CustomResourceStack.Outputs.CopyFunction'
   S3BucketLogs:
     Description: Logging bucket
-    Value: !GetAtt CustomResourceStack.Outputs.S3BucketLogs
+    Value: !GetAtt 'CustomResourceStack.Outputs.S3BucketLogs'
   S3BucketRoot:
     Description: Website bucket
-    Value: !GetAtt CustomResourceStack.Outputs.S3BucketRoot
+    Value: !GetAtt 'CustomResourceStack.Outputs.S3BucketRoot'
   S3BucketLogsName:
     Description: Logging bucket name
-    Value: !GetAtt CustomResourceStack.Outputs.S3BucketLogsName
+    Value: !GetAtt 'CustomResourceStack.Outputs.S3BucketLogsName'
   S3BucketRootName:
     Description: Website bucket name
-    Value: !GetAtt CustomResourceStack.Outputs.S3BucketRootName
+    Value: !GetAtt 'CustomResourceStack.Outputs.S3BucketRootName'
   CertificateArn:
-    Description: Issued certificate 
-    Value: !GetAtt AcmCertificateStack.Outputs.CertificateArn
-  # CFDistributionName:
-  #   Description: CloudFront distribution
-  #   Value: !GetAtt CloudFrontStack.Outputs.CloudFrontDistribution
-  # LambdaEdgeFunctionVersion:
-  #   Description: Security Lambda version
-  #   Value: !GetAtt CloudFrontStack.Outputs.LambdaEdgeFunctionVersion
-  # CloudFrontDomainName:
-  #   Description: Website address
-  #   Value: !GetAtt CloudFrontStack.Outputs.CloudFrontDomainName
+    Description: Issued certificate
+    Value: !GetAtt 'AcmCertificateStack.Outputs.CertificateArn'

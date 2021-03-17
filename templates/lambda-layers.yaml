@@ -1,7 +1,6 @@
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: CFSS Layers
-
 Resources:
   AWSSDK:
     Type: AWS::Serverless::LayerVersion
@@ -39,17 +38,16 @@ Resources:
       CompatibleRuntimes:
         - python3.8
       RetentionPolicy: Retain
-
 Outputs:
   AWSSDK:
     Description: AWS SDK Layer
-    Value: !Ref AWSSDK
+    Value: !Ref 'AWSSDK'
   BotoUtils:
     Description: Boto Utils Layer
-    Value: !Ref BotoUtils
+    Value: !Ref 'BotoUtils'
   CustomResourceHelper:
     Description: Custom Resource Helper Layer
-    Value: !Ref CustomResourceHelper
+    Value: !Ref 'CustomResourceHelper'
   Decorators:
     Description: Decorators Layer
-    Value: !Ref Decorators
+    Value: !Ref 'Decorators'
