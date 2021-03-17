@@ -1,0 +1,101 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ACFS3 - CloudFront with Header Security and site content
+Transform: AWS::Serverless-2016-10-31
+Parameters:
+  LogLevel:
+    Type: String
+    Default: INFO
+    AllowedValues:
+      - CRITICAL
+      - FATAL
+      - ERROR
+      - WARNING
+      - INFO
+      - DEBUG
+      - NOTSET
+  AWSSDK:
+    Type: String
+    Description: Required library
+  Decorators:
+    Type: String
+    Description: Required library
+  BotoUtils:
+    Type: String
+    Description: Required library
+  CustomResourceHelper:
+    Type: String
+    Description: Required library
+  CloneRegion:
+    Type: String
+    Description: Target for Lambda function copy
+  ResourcePrefix:
+    Type: String
+    Description: The prefix used for uniquely named resources
+Resources:
+  SecuredEdgeLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Custom Lambda resource for the AWS Perspective Stack
+      Handler: index.handler
+      PackageType: Zip
+      CodeUri: ../index.zip
+      Layers:
+        - !Ref 'AWSSDK'
+        - !Ref 'Decorators'
+        - !Ref 'BotoUtils'
+        - !Ref 'CustomResourceHelper'
+      Role: !GetAtt 'RegionalEdgeLambdaFunctionRole.Arn'
+      Timeout: 3
+      Runtime: python3.8
+  SecuredEdgeLambda:
+    Type: Custom::Setup
+    Properties:
+      ServiceToken: !GetAtt 'SecuredEdgeLambdaFunction.Arn'
+      LogLevel: !Ref 'LogLevel'
+      RoleArn: !GetAtt 'LambdaEdgeFunctionRole.Arn'
+      ResourcePrefix: !Ref 'ResourcePrefix'
+  LambdaEdgeFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowLambdaServiceToAssumeRole
+            Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+                - edgelambda.amazonaws.com
+  RegionalEdgeLambdaFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: CreateRegionalEdgeLambdaFunctionRolePolicy0
+          PolicyDocument:
+            Statement:
+              - Action:
+                  - lambda:CreateFunction
+                  - lambda:DeleteFunction
+                Resource: !Sub 'arn:aws:lambda:${CloneRegion}:${AWS::AccountId}:function:${ResourcePrefix}*'
+                Effect: Allow
+              - Action: iam:PassRole
+                Resource: !GetAtt 'LambdaEdgeFunctionRole.Arn'
+                Effect: Allow
+Outputs:
+  SecuredEdgeLambdaArn:
+    Value: !GetAtt 'SecuredEdgeLambda.FunctionArnWithVersion'

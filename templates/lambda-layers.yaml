@@ -1,0 +1,53 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: CFSS Layers
+Resources:
+  AWSSDK:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: AWSSDK
+      Description: Latest confirmed compatible AWS SDK
+      ContentUri: ../source/lambda-layers/aws_sdk.zip
+      CompatibleRuntimes:
+        - python3.8
+      RetentionPolicy: Retain
+  BotoUtils:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: BotoUtils
+      Description: Helpful boto3 utils
+      ContentUri: ../source/lambda-layers/boto_utils.zip
+      CompatibleRuntimes:
+        - python3.8
+      RetentionPolicy: Retain
+  CustomResourceHelper:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: CustomResourceHelper
+      Description: Helper for CloudFormation Custom Resources
+      ContentUri: ../source/lambda-layers/cr_helper.zip
+      CompatibleRuntimes:
+        - python3.8
+      RetentionPolicy: Retain
+  Decorators:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: Decorators
+      Description: Helpful function decorators
+      ContentUri: ../source/lambda-layers/decorators.zip
+      CompatibleRuntimes:
+        - python3.8
+      RetentionPolicy: Retain
+Outputs:
+  AWSSDK:
+    Description: AWS SDK Layer
+    Value: !Ref 'AWSSDK'
+  BotoUtils:
+    Description: Boto Utils Layer
+    Value: !Ref 'BotoUtils'
+  CustomResourceHelper:
+    Description: Custom Resource Helper Layer
+    Value: !Ref 'CustomResourceHelper'
+  Decorators:
+    Description: Decorators Layer
+    Value: !Ref 'Decorators'

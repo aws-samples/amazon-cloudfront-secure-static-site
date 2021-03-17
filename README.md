@@ -77,7 +77,7 @@ To deploy the solution, you use [AWS CloudFormation](https://aws.amazon.com/clou
 5. On the **Configure stack options** page, you can optionally [add tags and other stack options](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-add-tags.html). When finished, choose the **Next** button.
 6. On the **Review** page, you must scroll down and check the two boxes in the **Capabilities** section:
 
-    - **I acknowledge that AWS CloudFormation might create IAM resources with custom names.** 
+    - **I acknowledge that AWS CloudFormation might create IAM resources with custom names.**
     - **I acknowledge that AWS CloudFormation might require the following capability: CAPABILITY_AUTO_EXPAND**
 
     These capabilities allow CloudFormation to create an IAM role that allows access
@@ -102,7 +102,7 @@ To download the CloudFormation template to deploy on your own, for example by [u
 https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-static-site/latest/main.yaml
 
 ## Customizing the Solution
-### Update the website content locally 
+### Update the website content locally
 
 **To customize the website with your own content before deploying the solution**
 
@@ -139,7 +139,7 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
         --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
         --parameter-overrides  DomainName=<your domain name> SubDomain=<your website subdomain>
     ```
-    
+
 8. [Optional] Run the following command to deploy the packaged CloudFormation template to a CloudFormation stack with a domain apex.
 
     ```shell
@@ -150,12 +150,15 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
         --parameter-overrides  DomainName=<your domain name> SubDomain=<your website subdomain> CreateApex=yes
     ```
 
+9. [Alternatively] To package and deploy using `make`:
+ - Edit the `.custom.mk` file with the required values. Then run `make deploy` to package and deploy the stack
+
 
 ### Updating the site Content Security Policy
 
 To change the Content Security Policy of the site:
 
-1. Make your changes to the header values by editing `source/secured-headers/index.js`. 
+1. Make your changes to the header values by editing `source/secured-headers/index.js`.
 1. Deploy the solution by following the steps in [Update the website content locally](#update-the-website-content-locally)
 
 

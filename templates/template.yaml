@@ -33,12 +33,8 @@ Parameters:
     Description: Target for Lambda function copy
     Type: String
     Default: us-east-1
-  ResourcePrefix:
-    Description: The prefix used for uniquely named resources
-    Type: String
-    Default: CFSS
 Resources:
-  LayerStack:
+  LambaLayersStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: ./lambda-layers.yaml
@@ -65,36 +61,20 @@ Resources:
       Tags:
         - Key: Solution
           Value: ACFS3
-  CloudFrontLayerStack:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: ./cloudfront-site-layers.yaml
-      Parameters:
-        AWSSDK: !GetAtt 'LayerStack.Outputs.AWSSDK'
-        Decorators: !GetAtt 'LayerStack.Outputs.Decorators'
-        BotoUtils: !GetAtt 'LayerStack.Outputs.BotoUtils'
-        CustomResourceHelper: !GetAtt 'LayerStack.Outputs.CustomResourceHelper'
-        CloneRegion: !Ref 'CloneRegion'
-        ResourcePrefix: !Ref 'ResourcePrefix'
-      Tags:
-        - Key: Solution
-          Value: ACFS3
-  CloudFrontResourceStack:
+  CloudFrontStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: ./cloudfront-site.yaml
       Parameters:
-        CreateApex: !Ref 'CreateApex'
-        SubDomain: !Ref 'SubDomain'
+        CertificateArn: !GetAtt 'AcmCertificateStack.Outputs.CertificateArn'
         DomainName: !Ref 'DomainName'
-        StackName: !Sub '${AWS::StackName}'
-        S3BucketLogs: !GetAtt 'CustomResourceStack.Outputs.S3BucketLogs'
+        SubDomain: !Ref 'SubDomain'
+        CreateApex: !Ref 'CreateApex'
         S3BucketRoot: !GetAtt 'CustomResourceStack.Outputs.S3BucketRoot'
-        S3BucketLogsName: !GetAtt 'CustomResourceStack.Outputs.S3BucketLogsName'
         S3BucketRootName: !GetAtt 'CustomResourceStack.Outputs.S3BucketRootName'
         S3BucketRootArn: !GetAtt 'CustomResourceStack.Outputs.S3BucketRootArn'
-        CertificateArn: !GetAtt 'AcmCertificateStack.Outputs.CertificateArn'
-        SecuredEdgeLambdaArn: !GetAtt 'CloudFrontLayerStack.Outputs.SecuredEdgeLambdaArn'
+        S3BucketLogs: !GetAtt 'CustomResourceStack.Outputs.S3BucketLogs'
+        S3BucketLogsName: !GetAtt 'CustomResourceStack.Outputs.S3BucketLogsName'
       Tags:
         - Key: Solution
           Value: ACFS3
@@ -125,3 +105,12 @@ Outputs:
   CertificateArn:
     Description: Issued certificate
     Value: !GetAtt 'AcmCertificateStack.Outputs.CertificateArn'
+  CFDistributionName:
+    Description: CloudFront distribution
+    Value: !GetAtt 'CloudFrontStack.Outputs.CloudFrontDistribution'
+  LambdaEdgeFunctionVersion:
+    Description: Security Lambda version
+    Value: !GetAtt 'CloudFrontStack.Outputs.LambdaEdgeFunctionVersion'
+  CloudFrontDomainName:
+    Description: Website address
+    Value: !GetAtt 'CloudFrontStack.Outputs.CloudFrontDomainName'
