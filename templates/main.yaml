@@ -22,6 +22,12 @@ Parameters:
   DomainName:
     Description: The part of a website address after your SubDomain - e.g. example.com
     Type: String
+  Repository:
+    Description: GitHub Repository URL
+    Type: String
+  Branch:
+    Description: GitHub Repository Branch
+    Type: String
   CreateApex:
     Description: Create an Apex Alias in CloudFront distribution - yes/no
     Type: String
@@ -52,6 +58,13 @@ Resources:
       Tags:
         - Key: Solution
           Value: ACFS3
+  AmplifyHostingStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./amplify-template.yaml
+      Parameters:
+        Repository: !Ref 'Repository'
+        Branch: !Ref 'Branch'
   AcmCertificateStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -87,6 +100,7 @@ Resources:
         CreateApex: !Ref 'CreateApex'
         SubDomain: !Ref 'SubDomain'
         DomainName: !Ref 'DomainName'
+        AmplifyHosting: !GetAtt 'AmplifyHostingStack.Outputs.DefaultDomain'
         StackName: !Sub '${AWS::StackName}'
         S3BucketLogs: !GetAtt 'CustomResourceStack.Outputs.S3BucketLogs'
         S3BucketRoot: !GetAtt 'CustomResourceStack.Outputs.S3BucketRoot'

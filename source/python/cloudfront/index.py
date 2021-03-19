@@ -33,6 +33,7 @@ def create(event, context):
     bucket_arn = event["ResourceProperties"]["SiteBucketArn"]
     lambda_arnWver = event["ResourceProperties"]["SecureEdgeFunctionArn"]
     oai = event["ResourceProperties"]["OAI"]
+    amplify_hosting = event["ResourceProperties"]["OAI"]
     certificate_arn = event["ResourceProperties"]["CertArn"]
     create_apex_config = True if (apex_from_config == "yes") else False
     tags = {
@@ -107,9 +108,9 @@ def create(event, context):
             "Quantity": 1,
             "Items": [
                 {
-                    "DomainName":  bucket_root,
-                    "Id": f"s3-{stack_name.lower()}-root",
-                    "S3OriginConfig": {"OriginAccessIdentity": f"origin-access-identity/cloudfront/{oai}"}
+                    "DomainName":  amplify_hosting,
+                    "Id": f"{stack_name.lower()}-root"
+
                 }
             ]
         },

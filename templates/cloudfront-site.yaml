@@ -11,8 +11,11 @@ Parameters:
   SubDomain:
     Description: Subdomain
     Type: String
-  S3BucketLogs:
-    Description: Logging Bucket
+  SubDomain:
+    Description: Subdomain
+    Type: String
+  AmplifyHosting:
+    Description: Amplify static hosting endpoint
     Type: String
   S3BucketRoot:
     Description: Content Bucket
@@ -166,6 +169,7 @@ Resources:
       SecureEdgeFunctionArn: !Ref 'SecuredEdgeLambdaArn'
       RoleArn: !GetAtt 'CloudFrontFunctionRole.Arn'
       ServiceToken: !GetAtt 'CloudfrontCustomFunction.Arn'
+      AmplifyHosting: !Ref 'AmplifyHosting'
   CloudFrontOriginAccessIdentity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
