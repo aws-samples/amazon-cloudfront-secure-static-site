@@ -84,6 +84,7 @@ deploy: init package-static package-function
 	@aws cloudformation package \
 		--template-file ./templates/main.yaml \
       	--s3-bucket $(BUCKET_NAME) \
+		--region $(AWS_REGION) \
       	--output-template-file ./templates/packaged.template
 
 	@printf "\n--> Deploying %s template...\n" $(STACK_NAME)

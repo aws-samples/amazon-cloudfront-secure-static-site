@@ -75,6 +75,15 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  - iam:UpdateRoleDescription
+                  - iam:AttachRolePolicy
+                  - iam:PutRolePolicy
+                  - iam:CreateServiceLinkedRole
+                  - iam:ListRoles
+                  - iam:PassRole
+                Resource: arn:aws:iam::*:role/aws-service-role/*
+              - Effect: Allow
+                Action:
                   - lambda:GetFunction
                   - lambda:GetFunctionConfiguration
                   - lambda:GetFunctionEventInvokeConfig
