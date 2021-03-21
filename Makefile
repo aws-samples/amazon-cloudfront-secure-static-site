@@ -89,15 +89,8 @@ deploy: init package-static package-function
 
 	@printf "\n--> Deploying %s template...\n" $(STACK_NAME)
 
-	#aws secretsmanager create-secret --name github-access-token --secret-string <github-personal-access-token>
 
-#	@aws cloudformation deploy  \
-#  	--template-file ./templates/amplify-template.yaml \
-#  	--capabilities CAPABILITY_IAM \
-#  	--parameter-overrides \
-#      Repository=https://github.com/cornelcroi/my-jamstack-app-reactjs \
-#	  Branch=main \
-#  	--stack-name Firstapp
+	#aws secretsmanager create-secret --name github-access-token --secret-string <github-personal-access-token>
 
 	@aws cloudformation deploy \
 	--template-file ./templates/packaged.template \
@@ -108,4 +101,6 @@ deploy: init package-static package-function
             SubDomain=$(SUB_DOMAIN) \
             DomainName=$(DOMAIN_NAME)\
 			Repository=$(REPOSITORY) \
-			Branch=$(BRANCH)
+			Branch=$(BRANCH) \
+			WithDomainName=$(USE_DOMAIN_NAME)
+

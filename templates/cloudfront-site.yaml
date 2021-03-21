@@ -48,6 +48,8 @@ Conditions:
   CreateApexConfig: !Equals
     - !Ref 'CreateApex'
     - 'yes'
+  ShouldCreateAcmResource:
+    !Equals [true, !Ref WithDomainName]
 Resources:
   S3BucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -174,14 +176,21 @@ Resources:
       SiteBucketArn: !Ref 'S3BucketRootArn'
       LogsBucket: !Ref 'S3BucketLogsName'
       CertArn: !Ref 'CertificateArn'
+      OAI: !Ref 'CloudFrontOriginAccessIdentity'
       SecureEdgeFunctionArn: !Ref 'SecuredEdgeLambdaArn'
       RoleArn: !GetAtt 'CloudFrontFunctionRole.Arn'
       ServiceToken: !GetAtt 'CloudfrontCustomFunction.Arn'
       AmplifyHosting: !Ref 'AmplifyHosting'
       Branch: !Ref 'Branch'
       WithDomainName: !Ref 'WithDomainName'
+  CloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub 'CloudFront OAI for ${SubDomain}.${DomainName}'
   Route53RecordSetGroup:
     Type: AWS::Route53::RecordSetGroup
+    Condition: ShouldCreateAcmResource
     Properties:
       HostedZoneName: !Sub '${DomainName}.'
       RecordSets:
