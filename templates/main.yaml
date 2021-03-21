@@ -43,7 +43,22 @@ Parameters:
     Description: The prefix used for uniquely named resources
     Type: String
     Default: CFSS
+  WithDomainName:
+    Description: Whether should create domain name record
+    Default: false
+    Type: String
+    AllowedValues: [true, false]
+Conditions:
+  ShouldCreateAcmResource:
+    !Equals [true, !Ref WithDomainName]
 Resources:
+  AmplifyHostingStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./amplify-template.yaml
+      Parameters:
+        Repository: !Ref 'Repository'
+        Branch: !Ref 'Branch'
   LayerStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -58,15 +73,10 @@ Resources:
       Tags:
         - Key: Solution
           Value: ACFS3
-  AmplifyHostingStack:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: ./amplify-template.yaml
-      Parameters:
-        Repository: !Ref 'Repository'
-        Branch: !Ref 'Branch'
+
   AcmCertificateStack:
     Type: AWS::CloudFormation::Stack
+    Condition: ShouldCreateAcmResource
     Properties:
       TemplateURL: ./acm-certificate.yaml
       Parameters:
@@ -101,13 +111,15 @@ Resources:
         SubDomain: !Ref 'SubDomain'
         DomainName: !Ref 'DomainName'
         AmplifyHosting: !GetAtt 'AmplifyHostingStack.Outputs.DefaultDomain'
+        Branch: !Ref 'Branch'
         StackName: !Sub '${AWS::StackName}'
         S3BucketLogs: !GetAtt 'CustomResourceStack.Outputs.S3BucketLogs'
         S3BucketRoot: !GetAtt 'CustomResourceStack.Outputs.S3BucketRoot'
         S3BucketLogsName: !GetAtt 'CustomResourceStack.Outputs.S3BucketLogsName'
         S3BucketRootName: !GetAtt 'CustomResourceStack.Outputs.S3BucketRootName'
         S3BucketRootArn: !GetAtt 'CustomResourceStack.Outputs.S3BucketRootArn'
-        CertificateArn: !GetAtt 'AcmCertificateStack.Outputs.CertificateArn'
+        CertificateArn: "zezezz"
+        #!GetAtt 'AcmCertificateStack.Outputs.CertificateArn'
         SecuredEdgeLambdaArn: !GetAtt 'CloudFrontLayerStack.Outputs.SecuredEdgeLambdaArn'
       Tags:
         - Key: Solution
@@ -136,6 +148,6 @@ Outputs:
   S3BucketRootName:
     Description: Website bucket name
     Value: !GetAtt 'CustomResourceStack.Outputs.S3BucketRootName'
-  CertificateArn:
-    Description: Issued certificate
-    Value: !GetAtt 'AcmCertificateStack.Outputs.CertificateArn'
+#  CertificateArn:
+#    Description: Issued certificate
+#    Value: !GetAtt 'AcmCertificateStack.Outputs.CertificateArn'

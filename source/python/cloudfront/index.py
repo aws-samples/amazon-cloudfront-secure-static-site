@@ -33,7 +33,11 @@ def create(event, context):
     bucket_arn = event["ResourceProperties"]["SiteBucketArn"]
     lambda_arnWver = event["ResourceProperties"]["SecureEdgeFunctionArn"]
     oai = event["ResourceProperties"]["OAI"]
-    amplify_hosting = event["ResourceProperties"]["OAI"]
+    amplify_hosting = event["ResourceProperties"]["AmplifyHosting"]
+    repo_branch = event["ResourceProperties"]["Branch"]
+    amplify_hosting_url = repo_branch+'.'+amplify_hosting
+
+
     certificate_arn = event["ResourceProperties"]["CertArn"]
     create_apex_config = True if (apex_from_config == "yes") else False
     tags = {
@@ -46,10 +50,10 @@ def create(event, context):
     }
     config = {
         "CallerReference": f"{uuid.uuid4()}",
-        "Aliases": {
-            "Quantity": 1,
-            "Items": [f"{domain_name}" if create_apex_config else f"{subdomain}.{domain_name}"]
-        },
+#        "Aliases": {
+#            "Quantity": 1,
+#            "Items": [f"{domain_name}" if create_apex_config else f"{subdomain}.{domain_name}"]
+#        },
         "DefaultCacheBehavior": {
             "TrustedSigners": {
                 "Enabled": False,
@@ -65,7 +69,7 @@ def create(event, context):
             "MinTTL": 600,
             "DefaultTTL": 86400,
 
-            "TargetOriginId": f"s3-{stack_name.lower()}-root",
+            "TargetOriginId": "myCustomOrigin",
             "ViewerProtocolPolicy": "redirect-to-https",
             "LambdaFunctionAssociations": {
                 "Quantity": 1,
@@ -108,19 +112,26 @@ def create(event, context):
             "Quantity": 1,
             "Items": [
                 {
-                    "DomainName":  amplify_hosting,
-                    "Id": f"{stack_name.lower()}-root"
+                    "DomainName":  amplify_hosting_url,
+                    "Id": "myCustomOrigin",
+                    "CustomOriginConfig" : {
+                             "HTTPPort" : 80,
+                             "HTTPSPort" : 443,
+                             "OriginProtocolPolicy" : "match-viewer"
+                         }
 
                 }
             ]
         },
-        "PriceClass": "PriceClass_All",
-        "ViewerCertificate": {
-            "ACMCertificateArn":  certificate_arn,
-            "MinimumProtocolVersion": "TLSv1.1_2016",
-            "SSLSupportMethod": "sni-only"
-        }
+        "PriceClass": "PriceClass_All"
+    #    "ViewerCertificate": {
+#            "ACMCertificateArn":  certificate_arn,
+    #        "MinimumProtocolVersion": "TLSv1.1_2016",
+    #        "SSLSupportMethod": "sni-only"
+    #    }
     }
+
+    print(config)
     response = cloudfront.create_distribution_with_tags(
         DistributionConfigWithTags={
             "DistributionConfig": config,

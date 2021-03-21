@@ -14,8 +14,14 @@ Parameters:
   SubDomain:
     Description: Subdomain
     Type: String
+  S3BucketLogs:
+    Description: Logging Bucket
+    Type: String
   AmplifyHosting:
     Description: Amplify static hosting endpoint
+    Type: String
+  Branch:
+    Description: GitHub Repository Branch
     Type: String
   S3BucketRoot:
     Description: Content Bucket
@@ -170,6 +176,7 @@ Resources:
       RoleArn: !GetAtt 'CloudFrontFunctionRole.Arn'
       ServiceToken: !GetAtt 'CloudfrontCustomFunction.Arn'
       AmplifyHosting: !Ref 'AmplifyHosting'
+      Branch: !Ref 'Branch'
   CloudFrontOriginAccessIdentity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
