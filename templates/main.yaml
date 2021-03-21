@@ -112,14 +112,14 @@ Resources:
         DomainName: !Ref 'DomainName'
         AmplifyHosting: !GetAtt 'AmplifyHostingStack.Outputs.DefaultDomain'
         Branch: !Ref 'Branch'
+        WithDomainName: !Ref 'WithDomainName'
         StackName: !Sub '${AWS::StackName}'
         S3BucketLogs: !GetAtt 'CustomResourceStack.Outputs.S3BucketLogs'
         S3BucketRoot: !GetAtt 'CustomResourceStack.Outputs.S3BucketRoot'
         S3BucketLogsName: !GetAtt 'CustomResourceStack.Outputs.S3BucketLogsName'
         S3BucketRootName: !GetAtt 'CustomResourceStack.Outputs.S3BucketRootName'
         S3BucketRootArn: !GetAtt 'CustomResourceStack.Outputs.S3BucketRootArn'
-        CertificateArn: "zezezz"
-        #!GetAtt 'AcmCertificateStack.Outputs.CertificateArn'
+        CertificateArn:  !If [ ShouldCreateAcmResource, !GetAtt 'AcmCertificateStack.Outputs.CertificateArn', "aa" ]
         SecuredEdgeLambdaArn: !GetAtt 'CloudFrontLayerStack.Outputs.SecuredEdgeLambdaArn'
       Tags:
         - Key: Solution

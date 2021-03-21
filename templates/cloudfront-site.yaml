@@ -23,6 +23,9 @@ Parameters:
   Branch:
     Description: GitHub Repository Branch
     Type: String
+  WithDomainName:
+    Description: Use custom domaine name
+    Type: String
   S3BucketRoot:
     Description: Content Bucket
     Type: String
@@ -171,17 +174,12 @@ Resources:
       SiteBucketArn: !Ref 'S3BucketRootArn'
       LogsBucket: !Ref 'S3BucketLogsName'
       CertArn: !Ref 'CertificateArn'
-      OAI: !Ref 'CloudFrontOriginAccessIdentity'
       SecureEdgeFunctionArn: !Ref 'SecuredEdgeLambdaArn'
       RoleArn: !GetAtt 'CloudFrontFunctionRole.Arn'
       ServiceToken: !GetAtt 'CloudfrontCustomFunction.Arn'
       AmplifyHosting: !Ref 'AmplifyHosting'
       Branch: !Ref 'Branch'
-  CloudFrontOriginAccessIdentity:
-    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
-    Properties:
-      CloudFrontOriginAccessIdentityConfig:
-        Comment: !Sub 'CloudFront OAI for ${SubDomain}.${DomainName}'
+      WithDomainName: !Ref 'WithDomainName'
   Route53RecordSetGroup:
     Type: AWS::Route53::RecordSetGroup
     Properties:
