@@ -11,8 +11,20 @@ Parameters:
   SubDomain:
     Description: Subdomain
     Type: String
+  SubDomain:
+    Description: Subdomain
+    Type: String
   S3BucketLogs:
     Description: Logging Bucket
+    Type: String
+  AmplifyHosting:
+    Description: Amplify static hosting endpoint
+    Type: String
+  Branch:
+    Description: GitHub Repository Branch
+    Type: String
+  WithDomainName:
+    Description: Use custom domaine name
     Type: String
   S3BucketRoot:
     Description: Content Bucket
@@ -36,6 +48,8 @@ Conditions:
   CreateApexConfig: !Equals
     - !Ref 'CreateApex'
     - 'yes'
+  ShouldCreateAcmResource:
+    !Equals [true, !Ref WithDomainName]
 Resources:
   S3BucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -166,6 +180,9 @@ Resources:
       SecureEdgeFunctionArn: !Ref 'SecuredEdgeLambdaArn'
       RoleArn: !GetAtt 'CloudFrontFunctionRole.Arn'
       ServiceToken: !GetAtt 'CloudfrontCustomFunction.Arn'
+      AmplifyHosting: !Ref 'AmplifyHosting'
+      Branch: !Ref 'Branch'
+      WithDomainName: !Ref 'WithDomainName'
   CloudFrontOriginAccessIdentity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
@@ -173,6 +190,7 @@ Resources:
         Comment: !Sub 'CloudFront OAI for ${SubDomain}.${DomainName}'
   Route53RecordSetGroup:
     Type: AWS::Route53::RecordSetGroup
+    Condition: ShouldCreateAcmResource
     Properties:
       HostedZoneName: !Sub '${DomainName}.'
       RecordSets:

@@ -88,6 +88,10 @@ deploy: init package-static package-function
       	--output-template-file ./templates/packaged.template
 
 	@printf "\n--> Deploying %s template...\n" $(STACK_NAME)
+
+
+	#aws secretsmanager create-secret --name github-access-token --secret-string <github-personal-access-token>
+
 	@aws cloudformation deploy \
 	--template-file ./templates/packaged.template \
 	--stack-name $(STACK_NAME) \
@@ -95,4 +99,8 @@ deploy: init package-static package-function
 	--capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_NAMED_IAM CAPABILITY_IAM \
 	--parameter-overrides \
             SubDomain=$(SUB_DOMAIN) \
-            DomainName=$(DOMAIN_NAME)
+            DomainName=$(DOMAIN_NAME)\
+			Repository=$(REPOSITORY) \
+			Branch=$(BRANCH) \
+			WithDomainName=$(USE_DOMAIN_NAME)
+

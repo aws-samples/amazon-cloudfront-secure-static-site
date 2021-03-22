@@ -6,7 +6,7 @@ from crhelper import CfnResource
 from tenacity import retry, retry_if_result, wait_fixed
 
 logger = logging.getLogger(__name__)
-helper = CfnResource(json_logging=True, log_level='INFO',
+helper = CfnResource(json_logging=True, log_level='DEBUG',
                      boto_level='CRITICAL', sleep_on_delete=120)
 
 try:
@@ -32,9 +32,16 @@ def create(event, context):
     bucket_logs = event["ResourceProperties"]["LogsBucket"]
     bucket_arn = event["ResourceProperties"]["SiteBucketArn"]
     lambda_arnWver = event["ResourceProperties"]["SecureEdgeFunctionArn"]
-    oai = event["ResourceProperties"]["OAI"]
+    amplify_hosting = event["ResourceProperties"]["AmplifyHosting"]
+    repo_branch = event["ResourceProperties"]["Branch"]
+    with_domain_name = event["ResourceProperties"]["WithDomainName"]
+
+    amplify_hosting_url = repo_branch+'.'+amplify_hosting
+
+
     certificate_arn = event["ResourceProperties"]["CertArn"]
     create_apex_config = True if (apex_from_config == "yes") else False
+    create_domain_name = True if (with_domain_name == "true") else False
     tags = {
         "Items": [
             {
@@ -45,10 +52,10 @@ def create(event, context):
     }
     config = {
         "CallerReference": f"{uuid.uuid4()}",
-        "Aliases": {
-            "Quantity": 1,
-            "Items": [f"{domain_name}" if create_apex_config else f"{subdomain}.{domain_name}"]
-        },
+#        "Aliases": {
+#            "Quantity": 1,
+#            "Items": [f"{domain_name}" if create_apex_config else f"{subdomain}.{domain_name}"]
+#        },
         "DefaultCacheBehavior": {
             "TrustedSigners": {
                 "Enabled": False,
@@ -64,7 +71,7 @@ def create(event, context):
             "MinTTL": 600,
             "DefaultTTL": 86400,
 
-            "TargetOriginId": f"s3-{stack_name.lower()}-root",
+            "TargetOriginId": "myCustomOrigin",
             "ViewerProtocolPolicy": "redirect-to-https",
             "LambdaFunctionAssociations": {
                 "Quantity": 1,
@@ -96,7 +103,7 @@ def create(event, context):
         "HttpVersion": "http2",
         "DefaultRootObject": "index.html",
         "IsIPV6Enabled": True,
-        "Comment": f"{subdomain}.{domain_name}",
+        "Comment": f"{subdomain}.{domain_name}" if create_domain_name else "Distribution for static website" ,
         "Logging": {
             "Enabled": True,
             "Bucket":  bucket_logs,
@@ -107,19 +114,40 @@ def create(event, context):
             "Quantity": 1,
             "Items": [
                 {
-                    "DomainName":  bucket_root,
-                    "Id": f"s3-{stack_name.lower()}-root",
-                    "S3OriginConfig": {"OriginAccessIdentity": f"origin-access-identity/cloudfront/{oai}"}
+                    "DomainName":  amplify_hosting_url,
+                    "Id": "myCustomOrigin",
+                    "CustomOriginConfig" : {
+                             "HTTPPort" : 80,
+                             "HTTPSPort" : 443,
+                             "OriginProtocolPolicy" : "match-viewer"
+                         }
+
                 }
             ]
         },
-        "PriceClass": "PriceClass_All",
-        "ViewerCertificate": {
-            "ACMCertificateArn":  certificate_arn,
-            "MinimumProtocolVersion": "TLSv1.1_2016",
-            "SSLSupportMethod": "sni-only"
-        }
+        "PriceClass": "PriceClass_All"
+    #    "ViewerCertificate": {
+#            "ACMCertificateArn":  certificate_arn,
+    #        "MinimumProtocolVersion": "TLSv1.1_2016",
+    #        "SSLSupportMethod": "sni-only"
+    #    }
     }
+
+    if create_domain_name:
+     config["Aliases"] = {
+                "Quantity": 1,
+                "Items": [f"{domain_name}" if create_apex_config else f"{subdomain}.{domain_name}"]
+     }
+     config["ViewerCertificate"] = {
+                "ACMCertificateArn":  certificate_arn,
+                "MinimumProtocolVersion": "TLSv1.1_2016",
+                "SSLSupportMethod": "sni-only"
+     }
+
+
+    print(config)
+    logger.info(config)
+
     response = cloudfront.create_distribution_with_tags(
         DistributionConfigWithTags={
             "DistributionConfig": config,

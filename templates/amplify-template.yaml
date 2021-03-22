@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  Repository:
+    Type: String
+    Description: GitHub Repository URL
+  Branch:
+    Type: String
+    Description: GitHub Repository Branch
+
+
+Resources:
+  AmplifyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - amplify.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: Amplify
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'amplify:*'
+                Resource: '*'
+
+  AmplifyApp:
+    Type: 'AWS::Amplify::App'
+    Properties:
+      Name: static-frontent
+      Repository: !Ref Repository
+      Description: a test website
+      OauthToken: '{{resolve:secretsmanager:github-access-token:SecretString:::}}'
+      EnvironmentVariables:
+        - Name: _DISABLE_L2_CACHE
+          Value: 'true'
+      AutoBranchCreationConfig:
+        EnableAutoBranchCreation: True
+        EnableAutoBuild: False
+      Tags:
+        - Key: Name
+          Value: web-test
+      IAMServiceRole: !GetAtt AmplifyRole.Arn
+
+  AmplifyBranch:
+    Type: AWS::Amplify::Branch
+    Properties:
+      BranchName: !Ref Branch
+      AppId: !GetAtt AmplifyApp.AppId
+      Description: Develop Branch
+      EnableAutoBuild: false
+Outputs:
+  DefaultDomain:
+    Value: !GetAtt AmplifyApp.DefaultDomain

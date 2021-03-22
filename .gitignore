@@ -24,6 +24,7 @@ witch.zip
 **/e2e/*.map
 
 # misc
+
 **/npm-debug.log
 **/testem.log
 **/.env
@@ -38,3 +39,7 @@ witch.zip
 
 #nyc output
 **/.nyc_output
+
+
+source/lambda-layers/decorators
+source/python/cloudfront/boto*
