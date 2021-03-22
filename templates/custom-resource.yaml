@@ -76,80 +76,7 @@ Resources:
       Tags:
         - Key: Solution
           Value: ACFS3
-  S3BucketRoot:
-    Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      LoggingConfiguration:
-        DestinationBucketName: !Ref 'S3BucketLogs'
-        LogFilePrefix: origin/
-      Tags:
-        - Key: Solution
-          Value: ACFS3
-  CopyLayerVersion:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      ContentUri: ../witch.zip
-      CompatibleRuntimes:
-        - nodejs12.x
-  CopyRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Policies:
-        - PolicyName: S3CopyPolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:GetObject
-                  - s3:ListBucket
-                  - s3:PutObject
-                  - s3:PutObjectAcl
-                Resource:
-                  - !Sub
-                    - arn:aws:s3:::${TargetBucket}/*
-                    - TargetBucket: !Ref 'S3BucketRoot'
-                  - !Sub
-                    - arn:aws:s3:::${TargetBucket}
-                    - TargetBucket: !Ref 'S3BucketRoot'
-  CopyFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: ../www
-      Environment:
-        Variables:
-          BUCKET: !Ref 'S3BucketRoot'
-      Handler: witch.staticHandler
-      Layers:
-        - !Ref 'CopyLayerVersion'
-      Role: !GetAtt 'CopyRole.Arn'
-      Runtime: nodejs12.x
-      Timeout: 300
 Outputs:
-  S3BucketRoot:
-    Description: Website bucket
-    Value: !Ref 'S3BucketRoot'
-  S3BucketRootName:
-    Description: Website bucket name
-    Value: !GetAtt 'S3BucketRoot.DomainName'
-  S3BucketRootArn:
-    Description: Website bucket locator
-    Value: !GetAtt 'S3BucketRoot.Arn'
   S3BucketLogs:
     Description: Logging bucket
     Value: !Ref 'S3BucketLogs'
@@ -159,6 +86,3 @@ Outputs:
   CFNCustomProvider:
     Description: ACM helper function
     Value: !GetAtt 'CFNCustomProvider.Arn'
-  CopyFunction:
-    Description: S3 helper function
-    Value: !GetAtt 'CopyFunction.Arn'
