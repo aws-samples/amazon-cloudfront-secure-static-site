@@ -99,7 +99,7 @@ deploy: init package-static package-function
 	--capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_NAMED_IAM CAPABILITY_IAM \
 	--parameter-overrides \
             SubDomain=$(SUB_DOMAIN) \
-            DomainName=$(DOMAIN_NAME)\
+            DomainName=$(DOMAIN_NAME) \
 			Repository=$(REPOSITORY) \
 			Branch=$(BRANCH) \
 			WithDomainName=$(USE_DOMAIN_NAME)
