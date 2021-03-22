@@ -26,17 +26,8 @@ Parameters:
   WithDomainName:
     Description: Use custom domaine name
     Type: String
-  S3BucketRoot:
-    Description: Content Bucket
-    Type: String
   S3BucketLogsName:
     Description: Logging Bucket
-    Type: String
-  S3BucketRootName:
-    Description: Content Bucket
-    Type: String
-  S3BucketRootArn:
-    Description: Content Bucket locator
     Type: String
   CreateApex:
     Type: String
@@ -51,19 +42,6 @@ Conditions:
   ShouldCreateAcmResource:
     !Equals [true, !Ref WithDomainName]
 Resources:
-  S3BucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref 'S3BucketRoot'
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Action:
-              - s3:GetObject
-            Effect: Allow
-            Resource: !Sub '${S3BucketRootArn}/*'
-            Principal:
-              CanonicalUser: !GetAtt 'CloudFrontOriginAccessIdentity.S3CanonicalUserId'
   CloudFrontFunctionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -172,8 +150,6 @@ Resources:
       Subdomain: !Ref 'SubDomain'
       Domain: !Ref 'DomainName'
       StackName: !Ref 'StackName'
-      SiteBucketRootName: !Ref 'S3BucketRootName'
-      SiteBucketArn: !Ref 'S3BucketRootArn'
       LogsBucket: !Ref 'S3BucketLogsName'
       CertArn: !Ref 'CertificateArn'
       OAI: !Ref 'CloudFrontOriginAccessIdentity'

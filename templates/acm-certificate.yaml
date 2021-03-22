@@ -8,8 +8,6 @@ Parameters:
     Default: us-east-1
   CFNCustomProvider:
     Type: String
-  CopyFunction:
-    Type: String
   SubDomain:
     Type: String
   CreateApex:
@@ -19,10 +17,6 @@ Conditions:
     - !Ref 'CreateApex'
     - 'yes'
 Resources:
-  CopyCustomResource:
-    Type: AWS::CloudFormation::CustomResource
-    Properties:
-      ServiceToken: !Ref 'CopyFunction'
   Certificate:
     Type: Custom::Certificate
     Properties:

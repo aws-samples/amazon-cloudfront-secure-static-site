@@ -83,7 +83,6 @@ Resources:
         SubDomain: !Ref 'SubDomain'
         DomainName: !Ref 'DomainName'
         CFNCustomProvider: !GetAtt 'CustomResourceStack.Outputs.CFNCustomProvider'
-        CopyFunction: !GetAtt 'CustomResourceStack.Outputs.CopyFunction'
         CreateApex: !Ref 'CreateApex'
       Tags:
         - Key: Solution
@@ -115,11 +114,8 @@ Resources:
         WithDomainName: !Ref 'WithDomainName'
         StackName: !Sub '${AWS::StackName}'
         S3BucketLogs: !GetAtt 'CustomResourceStack.Outputs.S3BucketLogs'
-        S3BucketRoot: !GetAtt 'CustomResourceStack.Outputs.S3BucketRoot'
         S3BucketLogsName: !GetAtt 'CustomResourceStack.Outputs.S3BucketLogsName'
-        S3BucketRootName: !GetAtt 'CustomResourceStack.Outputs.S3BucketRootName'
-        S3BucketRootArn: !GetAtt 'CustomResourceStack.Outputs.S3BucketRootArn'
-        CertificateArn:  !If [ ShouldCreateAcmResource, !GetAtt 'AcmCertificateStack.Outputs.CertificateArn', "aa" ]
+        CertificateArn:  !If [ ShouldCreateAcmResource, !GetAtt 'AcmCertificateStack.Outputs.CertificateArn', "NoValue" ]
         SecuredEdgeLambdaArn: !GetAtt 'CloudFrontLayerStack.Outputs.SecuredEdgeLambdaArn'
       Tags:
         - Key: Solution
@@ -133,21 +129,12 @@ Outputs:
   CFNCustomProvider:
     Description: ACM helper function
     Value: !GetAtt 'CustomResourceStack.Outputs.CFNCustomProvider'
-  CopyFunction:
-    Description: S3 helper function
-    Value: !GetAtt 'CustomResourceStack.Outputs.CopyFunction'
   S3BucketLogs:
     Description: Logging bucket
     Value: !GetAtt 'CustomResourceStack.Outputs.S3BucketLogs'
-  S3BucketRoot:
-    Description: Website bucket
-    Value: !GetAtt 'CustomResourceStack.Outputs.S3BucketRoot'
   S3BucketLogsName:
     Description: Logging bucket name
     Value: !GetAtt 'CustomResourceStack.Outputs.S3BucketLogsName'
-  S3BucketRootName:
-    Description: Website bucket name
-    Value: !GetAtt 'CustomResourceStack.Outputs.S3BucketRootName'
 #  CertificateArn:
 #    Description: Issued certificate
 #    Value: !GetAtt 'AcmCertificateStack.Outputs.CertificateArn'

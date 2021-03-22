@@ -27,8 +27,6 @@ venv/bin/activate: requirements.txt
 	. .venv/bin/activate
 
 
-clean:
-	rm -rf *.zip source/witch/nodejs/node_modules/ source/lambda-layers/*.zip
 
 test-cfn:
 	cfn_nag templates/*.yaml --blacklist-path ci/cfn_nag_blacklist.yaml
@@ -50,12 +48,6 @@ package: init
 	make package-function
 	zip -r packaged.zip templates backend cfn-publish.config build.zip -x **/__pycache* -x *settings.js
 
-build-static:
-	cd source/witch/ && npm install --prefix nodejs mime-types && cp witch.js nodejs/node_modules/
-
-package-static:
-	make build-static
-	cd source/witch && zip -r ../../witch.zip nodejs
 
 package-python:
 	@cd source/python && \
@@ -69,7 +61,6 @@ package-python:
 package-function:
 	make clean
 	make requirements
-	make package-static
 	make package-python
 	cd source/secured-headers/ && zip -r ../../index.zip index.py
 
@@ -79,7 +70,7 @@ delete:
 	@aws cloudformation delete-stack --stack-name $(STACK_NAME)
 	@printf "\n--> $(STACK_NAME) deletion has been submitted, check AWS CloudFormation Console for an update..."
 
-deploy: init package-static package-function
+deploy: init package-function
 	@printf "\n--> Packaging and uploading templates to the %s bucket ...\n" $(BUCKET_NAME)
 	@aws cloudformation package \
 		--template-file ./templates/main.yaml \
