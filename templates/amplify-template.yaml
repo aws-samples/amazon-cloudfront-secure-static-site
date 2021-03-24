@@ -47,8 +47,18 @@ Resources:
       Tags:
         - Key: Name
           Value: web-test
-      IAMServiceRole: !GetAtt AmplifyRole.Arn
-
+      CustomHeaders: |-
+        customHeaders:
+          - pattern: '**/*'
+            headers:
+              - key: 'Strict-Transport-Security'
+                value: 'max-age=31536000; includeSubDomains'
+              - key: 'X-XSS-Protection'
+                value: '1; mode=block'
+              - key: 'X-Content-Type-Options'
+                value: 'nosniff'
+              - key: 'Content-Security-Policy'
+                value: 'default-src self'
   AmplifyBranch:
     Type: AWS::Amplify::Branch
     Properties:

@@ -62,7 +62,7 @@ package-function:
 	make clean
 	make requirements
 	make package-python
-	cd source/secured-headers/ && zip -r ../../index.zip index.py
+	cd source/modify-response/ && zip -r ../../index.zip index.py
 
 
 delete:
@@ -93,5 +93,6 @@ deploy: init package-function
             DomainName=$(DOMAIN_NAME) \
 			Repository=$(REPOSITORY) \
 			Branch=$(BRANCH) \
-			WithDomainName=$(USE_DOMAIN_NAME)
+			WithDomainName=$(USE_DOMAIN_NAME) \
+			ModifyOriginResponse=$(MODIFY_ORIGIN_RESPONSE)
 

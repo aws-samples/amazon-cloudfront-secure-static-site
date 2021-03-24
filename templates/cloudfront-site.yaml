@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: ACFS3 - CloudFront with Header Security and site content
+Description: ACFS3 - CloudFront
 Transform: AWS::Serverless-2016-10-31
 Parameters:
   CertificateArn:
@@ -25,6 +25,9 @@ Parameters:
     Type: String
   WithDomainName:
     Description: Use custom domaine name
+    Type: String
+  ModifyOriginResponse:
+    Description: Deploy or not lambda edge origin response
     Type: String
   S3BucketLogsName:
     Description: Logging Bucket
@@ -159,6 +162,7 @@ Resources:
       AmplifyHosting: !Ref 'AmplifyHosting'
       Branch: !Ref 'Branch'
       WithDomainName: !Ref 'WithDomainName'
+      ModifyOriginResponse: !Ref 'ModifyOriginResponse'
   CloudFrontOriginAccessIdentity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
