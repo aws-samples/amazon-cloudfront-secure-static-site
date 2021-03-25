@@ -1,9 +1,9 @@
-BUCKET_NAME=frontend-core-static-hosting
-AWS_REGION=us-east-1
-STACK_NAME=my-stack-edge-2
-SUB_DOMAIN=myhosting
-DOMAIN_NAME=ccroito.people.aws.dev
-REPOSITORY=https://github.com/cornelcroi/my-jamstack-app-reactjs
-BRANCH=main
+BUCKET_NAME=
+AWS_REGION=
+STACK_NAME=
+SUB_DOMAIN=
+DOMAIN_NAME=
+REPOSITORY=
+BRANCH=
 USE_DOMAIN_NAME=false
 MODIFY_ORIGIN_RESPONSE=false
