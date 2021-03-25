@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: ACFS3 - S3 Static site with CF and ACM (uksb-1qnk6ni7b) (version:v0.5)
+Description: ACFS3 - Static site with CF and ACM (uksb-1qnk6ni7b) (version:v0.5)
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
