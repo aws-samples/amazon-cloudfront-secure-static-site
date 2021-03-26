@@ -98,3 +98,20 @@ deploy: init package-function
 			WithDomainName=$(USE_DOMAIN_NAME) \
 			ModifyOriginResponse=$(MODIFY_ORIGIN_RESPONSE)
 
+layers: init requirements
+
+
+	@printf "\n--> Packaging and uploading templates to the %s bucket ...\n" $(BUCKET_NAME)
+	@aws cloudformation package \
+		--template-file ./templates/lambda-layers.yaml \
+      	--s3-bucket $(BUCKET_NAME) \
+		--region $(AWS_REGION) \
+      	--output-template-file ./templates/packaged_layers.template
+
+	@printf "\n--> Deploying %s template...\n" $(STACK_NAME)
+
+	@aws cloudformation deploy \
+	--template-file ./templates/packaged_layers.template \
+	--stack-name $(STACK_NAME)-layers \
+	--region $(AWS_REGION) \
+	--capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_NAMED_IAM CAPABILITY_IAM \
