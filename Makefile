@@ -97,7 +97,7 @@ deploy: init package-function
 			WithDomainName=$(USE_DOMAIN_NAME) \
 			ModifyOriginResponse=$(MODIFY_ORIGIN_RESPONSE)
 
-layers: init package-layers
+deploy-layers: init package-layers
 
 
 	@printf "\n--> Packaging and uploading templates to the %s bucket ...\n" $(BUCKET_NAME)
