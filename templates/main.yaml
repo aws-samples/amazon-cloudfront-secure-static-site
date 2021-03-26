@@ -53,6 +53,18 @@ Parameters:
     Default: false
     Type: String
     AllowedValues: [true, false]
+  AWSSDK:
+    Type : 'AWS::SSM::Parameter::Value<String>'
+    Default: SDKArn
+  Decorators:
+    Type : 'AWS::SSM::Parameter::Value<String>'
+    Default: Decorators
+  BotoUtils:
+    Type : 'AWS::SSM::Parameter::Value<String>'
+    Default: BotoUtilsArn
+  CustomResourceHelper:
+    Type : 'AWS::SSM::Parameter::Value<String>'
+    Default: CustomResourceHelperArn
 
 Conditions:
   ShouldCreateAcmResource:
@@ -67,13 +79,6 @@ Resources:
       Parameters:
         Repository: !Ref 'Repository'
         Branch: !Ref 'Branch'
-  LayerStack:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: ./lambda-layers.yaml
-      Tags:
-        - Key: Solution
-          Value: ACFS3
   CustomResourceStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -101,10 +106,10 @@ Resources:
     Properties:
       TemplateURL: ./cloudfront-site-layers.yaml
       Parameters:
-        AWSSDK: !GetAtt 'LayerStack.Outputs.AWSSDK'
-        Decorators: !GetAtt 'LayerStack.Outputs.Decorators'
-        BotoUtils: !GetAtt 'LayerStack.Outputs.BotoUtils'
-        CustomResourceHelper: !GetAtt 'LayerStack.Outputs.CustomResourceHelper'
+        AWSSDK: !Ref AWSSDK
+        Decorators: !Ref Decorators
+        BotoUtils: !Ref BotoUtils
+        CustomResourceHelper: !Ref CustomResourceHelper
         CloneRegion: !Ref 'CloneRegion'
         ResourcePrefix: !Ref 'ResourcePrefix'
       Tags:
