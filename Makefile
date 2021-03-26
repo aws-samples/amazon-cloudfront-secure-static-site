@@ -35,7 +35,7 @@ test-cfn:
 version:
 	@echo $(shell cfn-flip templates/main.yaml | python -c 'import sys, json; print(json.load(sys.stdin)["Mappings"]["Solution"]["Constants"]["Version"])')
 
-requirements:
+package-layers:
 	cd source/lambda-layers ; \
 	for i in `ls -d *` ; do \
 		cd $$i ; \
@@ -60,7 +60,6 @@ package-python:
 
 package-function:
 	make clean
-	make requirements
 	make package-python
 	cd source/modify-response/ && zip -r ../../index.zip index.py
 
@@ -98,7 +97,7 @@ deploy: init package-function
 			WithDomainName=$(USE_DOMAIN_NAME) \
 			ModifyOriginResponse=$(MODIFY_ORIGIN_RESPONSE)
 
-layers: init requirements
+layers: init package-layers
 
 
 	@printf "\n--> Packaging and uploading templates to the %s bucket ...\n" $(BUCKET_NAME)
