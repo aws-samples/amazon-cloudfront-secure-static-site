@@ -151,6 +151,7 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
     ```
 
 9. [Alternatively] To package and deploy using `make`:
+ - If you are deploying for the first time build required layers using `make layers`
  - Edit the `.custom.mk` file with the required values. Then run `make deploy` to package and deploy the stack
 
 
