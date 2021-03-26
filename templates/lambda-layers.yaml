@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Lambda Layers
+Description: Create required Lamba Layers
 Resources:
   AWSSDK:
     Type: AWS::Serverless::LayerVersion
@@ -38,16 +38,27 @@ Resources:
       CompatibleRuntimes:
         - python3.8
       RetentionPolicy: Retain
-Outputs:
-  AWSSDK:
-    Description: AWS SDK Layer
-    Value: !Ref 'AWSSDK'
-  BotoUtils:
-    Description: Boto Utils Layer
-    Value: !Ref 'BotoUtils'
-  CustomResourceHelper:
-    Description: Custom Resource Helper Layer
-    Value: !Ref 'CustomResourceHelper'
-  Decorators:
-    Description: Decorators Layer
-    Value: !Ref 'Decorators'
+  AWSSDKArn:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: SDKArn
+      Type: String
+      Value: !Ref AWSSDK
+  CustomResourceHelperArn:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: CustomResourceHelperArn
+      Type: String
+      Value: !Ref CustomResourceHelper
+  DecoratorsArn:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: Decorators
+      Type: String
+      Value: !Ref Decorators
+  BotoUtilsArn:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: BotoUtilsArn
+      Type: String
+      Value: !Ref BotoUtils

@@ -35,7 +35,7 @@ test-cfn:
 version:
 	@echo $(shell cfn-flip templates/main.yaml | python -c 'import sys, json; print(json.load(sys.stdin)["Mappings"]["Solution"]["Constants"]["Version"])')
 
-requirements:
+package-layers:
 	cd source/lambda-layers ; \
 	for i in `ls -d *` ; do \
 		cd $$i ; \
@@ -60,7 +60,6 @@ package-python:
 
 package-function:
 	make clean
-	make requirements
 	make package-python
 	cd source/modify-response/ && zip -r ../../index.zip index.py
 
@@ -98,3 +97,20 @@ deploy: init package-function
 			WithDomainName=$(USE_DOMAIN_NAME) \
 			ModifyOriginResponse=$(MODIFY_ORIGIN_RESPONSE)
 
+deploy-layers: init package-layers
+
+
+	@printf "\n--> Packaging and uploading templates to the %s bucket ...\n" $(BUCKET_NAME)
+	@aws cloudformation package \
+		--template-file ./templates/lambda-layers.yaml \
+      	--s3-bucket $(BUCKET_NAME) \
+		--region $(AWS_REGION) \
+      	--output-template-file ./templates/packaged_layers.template
+
+	@printf "\n--> Deploying %s template...\n" $(STACK_NAME)
+
+	@aws cloudformation deploy \
+	--template-file ./templates/packaged_layers.template \
+	--stack-name $(STACK_NAME)-layers \
+	--region $(AWS_REGION) \
+	--capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_NAMED_IAM CAPABILITY_IAM \
