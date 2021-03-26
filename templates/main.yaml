@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: ACFS3 - S3 Static site with CF and ACM (uksb-1qnk6ni7b) (version:v0.5)
+Description: ACFS3 - Static site with CF and ACM (uksb-1qnk6ni7b) (version:v0.5)
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -48,9 +48,17 @@ Parameters:
     Default: false
     Type: String
     AllowedValues: [true, false]
+  ModifyOriginResponse:
+    Description: Whether to create lambda edge origin response
+    Default: false
+    Type: String
+    AllowedValues: [true, false]
+
 Conditions:
   ShouldCreateAcmResource:
     !Equals [true, !Ref WithDomainName]
+  ShouldCreateLambdaEdgeOriginResponse:
+    !Equals [true, !Ref ModifyOriginResponse]
 Resources:
   AmplifyHostingStack:
     Type: AWS::CloudFormation::Stack
@@ -89,6 +97,7 @@ Resources:
           Value: ACFS3
   CloudFrontLayerStack:
     Type: AWS::CloudFormation::Stack
+    Condition: ShouldCreateLambdaEdgeOriginResponse
     Properties:
       TemplateURL: ./cloudfront-site-layers.yaml
       Parameters:
@@ -112,11 +121,12 @@ Resources:
         AmplifyHosting: !GetAtt 'AmplifyHostingStack.Outputs.DefaultDomain'
         Branch: !Ref 'Branch'
         WithDomainName: !Ref 'WithDomainName'
+        ModifyOriginResponse: !Ref 'ModifyOriginResponse'
         StackName: !Sub '${AWS::StackName}'
         S3BucketLogs: !GetAtt 'CustomResourceStack.Outputs.S3BucketLogs'
         S3BucketLogsName: !GetAtt 'CustomResourceStack.Outputs.S3BucketLogsName'
         CertificateArn:  !If [ ShouldCreateAcmResource, !GetAtt 'AcmCertificateStack.Outputs.CertificateArn', "NoValue" ]
-        SecuredEdgeLambdaArn: !GetAtt 'CloudFrontLayerStack.Outputs.SecuredEdgeLambdaArn'
+        SecuredEdgeLambdaArn: !If [ ShouldCreateLambdaEdgeOriginResponse, !GetAtt 'CloudFrontLayerStack.Outputs.SecuredEdgeLambdaArn', "NoValue" ]
       Tags:
         - Key: Solution
           Value: ACFS3

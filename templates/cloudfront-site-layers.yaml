@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: ACFS3 - CloudFront with Header Security and site content
+Description: ACFS3 - Lambda edge
 Transform: AWS::Serverless-2016-10-31
 Parameters:
   LogLevel:

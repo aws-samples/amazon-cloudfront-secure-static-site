@@ -62,7 +62,7 @@ package-function:
 	make clean
 	make requirements
 	make package-python
-	cd source/secured-headers/ && zip -r ../../index.zip index.py
+	cd source/modify-response/ && zip -r ../../index.zip index.py
 
 
 delete:
@@ -71,6 +71,9 @@ delete:
 	@printf "\n--> $(STACK_NAME) deletion has been submitted, check AWS CloudFormation Console for an update..."
 
 deploy: init package-function
+
+
+
 	@printf "\n--> Packaging and uploading templates to the %s bucket ...\n" $(BUCKET_NAME)
 	@aws cloudformation package \
 		--template-file ./templates/main.yaml \
@@ -79,7 +82,6 @@ deploy: init package-function
       	--output-template-file ./templates/packaged.template
 
 	@printf "\n--> Deploying %s template...\n" $(STACK_NAME)
-
 
 	#aws secretsmanager create-secret --name github-access-token --secret-string <github-personal-access-token>
 
@@ -93,5 +95,6 @@ deploy: init package-function
             DomainName=$(DOMAIN_NAME) \
 			Repository=$(REPOSITORY) \
 			Branch=$(BRANCH) \
-			WithDomainName=$(USE_DOMAIN_NAME)
+			WithDomainName=$(USE_DOMAIN_NAME) \
+			ModifyOriginResponse=$(MODIFY_ORIGIN_RESPONSE)
 

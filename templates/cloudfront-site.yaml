@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: ACFS3 - CloudFront with Header Security and site content
+Description: ACFS3 - CloudFront
 Transform: AWS::Serverless-2016-10-31
 Parameters:
   CertificateArn:
@@ -25,6 +25,9 @@ Parameters:
     Type: String
   WithDomainName:
     Description: Use custom domaine name
+    Type: String
+  ModifyOriginResponse:
+    Description: Deploy or not lambda edge origin response
     Type: String
   S3BucketLogsName:
     Description: Logging Bucket
@@ -115,20 +118,11 @@ Resources:
                 Resource: !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/*'
               - Effect: Allow
                 Action:
-                  - cloudfront:CreateCloudFrontOriginAccessIdentity
-                  - cloudfront:DeleteCloudFrontOriginAccessIdentity
-                  - cloudfront:GetCloudFrontOriginAccessIdentity
-                  - cloudfront:GetCloudFrontOriginAccessIdentityConfig
-                  - cloudfront:UpdateCloudFrontOriginAccessIdentity
-                Resource: !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:origin-access-identity/*'
-              - Effect: Allow
-                Action:
                   - cloudfront:CreateCachePolicy
                   - cloudfront:DeleteCachePolicy
                   - cloudfront:GetCachePolicy
                   - cloudfront:ListCachePolicies
                   - cloudfront:UpdateCachePolicy
-                  - cloudfront:GetCloudFrontOriginAccessIdentityConfig
                 Resource: !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:cache-policy/*'
       Tags:
         - Key: Solution
@@ -152,18 +146,13 @@ Resources:
       StackName: !Ref 'StackName'
       LogsBucket: !Ref 'S3BucketLogsName'
       CertArn: !Ref 'CertificateArn'
-      OAI: !Ref 'CloudFrontOriginAccessIdentity'
       SecureEdgeFunctionArn: !Ref 'SecuredEdgeLambdaArn'
       RoleArn: !GetAtt 'CloudFrontFunctionRole.Arn'
       ServiceToken: !GetAtt 'CloudfrontCustomFunction.Arn'
       AmplifyHosting: !Ref 'AmplifyHosting'
       Branch: !Ref 'Branch'
       WithDomainName: !Ref 'WithDomainName'
-  CloudFrontOriginAccessIdentity:
-    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
-    Properties:
-      CloudFrontOriginAccessIdentityConfig:
-        Comment: !Sub 'CloudFront OAI for ${SubDomain}.${DomainName}'
+      ModifyOriginResponse: !Ref 'ModifyOriginResponse'
   Route53RecordSetGroup:
     Type: AWS::Route53::RecordSetGroup
     Condition: ShouldCreateAcmResource
@@ -188,19 +177,4 @@ Resources:
             DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
             EvaluateTargetHealth: false
             HostedZoneId: Z2FDTNDATAQYW2
-Outputs:
-  CloudFrontDistribution:
-    Description: CloudFront distribution
-    Value: !GetAtt 'CloudFrontDistribution.DomainName'
-  DistributionId:
-    Description: CloudFront distribution
-    Value: !GetAtt 'CloudFrontDistribution.DistroId'
-  Status:
-    Description: CloudFront distribution
-    Value: !GetAtt 'CloudFrontDistribution.Status'
-  Etag:
-    Description: CloudFront distribution
-    Value: !GetAtt 'CloudFrontDistribution.ETag'
-  CloudFrontDomainName:
-    Description: Website address
-    Value: !Sub '${SubDomain}.${DomainName}'
+
