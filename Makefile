@@ -83,6 +83,7 @@ deploy: init package-function
 	@printf "\n--> Deploying %s template...\n" $(STACK_NAME)
 
 	#aws secretsmanager create-secret --name github-access-token --secret-string <github-personal-access-token>
+	#https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
 
 	@aws cloudformation deploy \
 	--template-file ./templates/packaged.template \
@@ -94,7 +95,8 @@ deploy: init package-function
             DomainName=$(DOMAIN_NAME) \
 			Repository=$(REPOSITORY) \
 			Branch=$(BRANCH) \
-			WithDomainName=$(USE_DOMAIN_NAME) \
+			Tokenname=$(TOKEN_NAME) \
+			WithDomainName="$(USE_DOMAIN_NAME)" \
 			ModifyOriginResponse=$(MODIFY_ORIGIN_RESPONSE)
 
 deploy-layers: init package-layers

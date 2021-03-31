@@ -28,6 +28,9 @@ Parameters:
   Branch:
     Description: GitHub Repository Branch
     Type: String
+  Tokenname:
+    Description: GitHub Repository Access token
+    Type: String
   CreateApex:
     Description: Create an Apex Alias in CloudFront distribution - yes/no
     Type: String
@@ -79,6 +82,7 @@ Resources:
       Parameters:
         Repository: !Ref 'Repository'
         Branch: !Ref 'Branch'
+        Tokenname: !Ref 'Tokenname'
   CustomResourceStack:
     Type: AWS::CloudFormation::Stack
     Properties:
