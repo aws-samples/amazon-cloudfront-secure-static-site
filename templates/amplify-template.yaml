@@ -7,8 +7,9 @@ Parameters:
   Branch:
     Type: String
     Description: GitHub Repository Branch
-
-
+  Tokenname:
+    Type: String
+    Description: GitHub Repository access token
 Resources:
   AmplifyRole:
     Type: AWS::IAM::Role
@@ -37,7 +38,7 @@ Resources:
       Name: static-frontent
       Repository: !Ref Repository
       Description: a test website
-      OauthToken: '{{resolve:secretsmanager:github-access-token:SecretString:::}}'
+      OauthToken: !Join ['', ['{{resolve:secretsmanager:', !Ref Tokenname , ':SecretString:::}}' ]]
       EnvironmentVariables:
         - Name: _DISABLE_L2_CACHE
           Value: 'true'
