@@ -26,15 +26,19 @@ The following diagram shows an overview of how the solution works:
 ## Solution details
 
 ### S3 configuration
+
 This solution creates an S3 bucket that hosts your static website’s assets. The website is only accessible via CloudFront, not directly from S3.
 
 ### CloudFront configuration
+
 This solution creates a CloudFront distribution to serve your website to viewers. The distribution is configured with a CloudFront [origin access identity](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html) to make sure that the website is only accessible via CloudFront, not directly from S3. The distribution is also configured with a [Lambda@Edge function](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-at-the-edge.html) that adds security headers to every response.
 
 ### ACM configuration
+
 This solution creates an SSL/TLS certificate in ACM, and attaches it to the CloudFront distribution. This enables the distribution to serve your domain’s website using HTTPS.
 
 ### Lambda@Edge configuration
+
 This solution creates a Lambda@Edge function that’s triggered on an [origin response event](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-cloudfront-trigger-events.html). The function adds security headers to every response served by CloudFront.
 
 The security headers can help mitigate some attacks, as explained in this blog post: [Adding HTTP Security Headers Using Lambda@Edge and Amazon CloudFront](https://aws.amazon.com/blogs/networking-and-content-delivery/adding-http-security-headers-using-lambdaedge-and-amazon-cloudfront/). Security headers are a group of headers in the web server response that tell web browsers to take extra security precautions. This solution adds the following headers to each response:
@@ -49,9 +53,11 @@ The security headers can help mitigate some attacks, as explained in this blog p
 For more information, see [Mozilla’s web security guidelines](https://infosec.mozilla.org/guidelines/web_security).
 
 ## Prerequisites
+
 You must have a registered domain name, such as example.com, and point it to a Route 53 hosted zone in the same AWS account in which you deploy this solution. For more information, see [Configuring Amazon Route 53 as your DNS service](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html).
 
 ## Deploy the solution
+
 To deploy the solution, you use [AWS CloudFormation](https://aws.amazon.com/cloudformation). You can use the CloudFormation console, or download the CloudFormation template to deploy it on your own.
 
 > **Note:** You must have IAM permissions to launch CloudFormation templates that create IAM roles, and to create all the AWS resources in the solution. Also, you are responsible for the cost of the AWS services used while running this solution. For more information about costs, see the pricing pages for each AWS service.
@@ -62,37 +68,39 @@ To deploy the solution, you use [AWS CloudFormation](https://aws.amazon.com/clou
 
 1. Click the **Launch on AWS** button to open the solution in the CloudFormation console.
 
-    [![Launch the Amazon CloudFront secure static website with CloudFormation](./docs/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=amazon-cloudfront-secure-static-site-templates-main&templateURL=https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-static-site/latest/main.yaml)
+   [![Launch the Amazon CloudFront secure static website with CloudFormation](./docs/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=amazon-cloudfront-secure-static-site-templates-main&templateURL=https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-static-site/latest/main.yaml)
 
 2. If necessary, sign in with your AWS account credentials.
 3. You should see a **Create stack** page, with pre-populated fields that specify the CloudFormation template. Choose the **Next** button at the bottom of the page.
 4. On the **Specify stack details** page, enter values for the
    following fields:
 
-    - **SubDomain:** The subdomain for your registered domain name. Viewers use the subdomain to access your website, for example: www.example.com. We recommend using the default value of **www** as the subdomain.
-    - **DomainName:** Your registered domain name, such as example.com. This domain must be pointed to a Route 53 hosted zone.
-    - **CreateApex:** Optionally create an Alias to the domain apex (example.com) in your CloudFront configuration.  Default is [no]
+   - **SubDomain:** The subdomain for your registered domain name. Viewers use the subdomain to access your website, for example: www.example.com. We recommend using the default value of **www** as the subdomain.
+   - **DomainName:** Your registered domain name, such as example.com. This domain must be pointed to a Route 53 hosted zone.
+   - **CreateApex:** Optionally create an Alias to the domain apex (example.com) in your CloudFront configuration. Default is [no]
 
    After entering values, choose the **Next** button.
+
 5. On the **Configure stack options** page, you can optionally [add tags and other stack options](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-add-tags.html). When finished, choose the **Next** button.
 6. On the **Review** page, you must scroll down and check the two boxes in the **Capabilities** section:
 
-    - **I acknowledge that AWS CloudFormation might create IAM resources with custom names.**
-    - **I acknowledge that AWS CloudFormation might require the following capability: CAPABILITY_AUTO_EXPAND**
+   - **I acknowledge that AWS CloudFormation might create IAM resources with custom names.**
+   - **I acknowledge that AWS CloudFormation might require the following capability: CAPABILITY_AUTO_EXPAND**
 
-    These capabilities allow CloudFormation to create an IAM role that allows access
+   These capabilities allow CloudFormation to create an IAM role that allows access
    to the stack’s resources, and to name the resources dynamically.
+
 7. Choose the **Create stack** button.
 8. Wait for the CloudFormation stack to launch. The stack launches some nested stacks, and can take several minutes to finish. When it’s launched, the **Status** changes to **CREATE_COMPLETE**.
 9. After the stack is launched, go to **www.example.com** to view your website (replace **example.com** with your domain name). You should see the website’s default content:
 
-    ![Static website page](./docs/images/static-website.png)
+   ![Static website page](./docs/images/static-website.png)
 
 **To replace the website’s default content with your own**
 
 1. Go to the [Amazon S3 console](https://s3.console.aws.amazon.com/s3/home).
 1. Choose the bucket whose name begins with **amazon-cloudfront-secure-static-site-s3bucketroot-**.
-    > **Note:** Make sure to choose the bucket with **s3bucketroot** in its name, not **s3bucketlogs**. The bucket with **s3bucketroot** in its name contains the content. The one with **s3bucketlogs** contains only log files.
+   > **Note:** Make sure to choose the bucket with **s3bucketroot** in its name, not **s3bucketlogs**. The bucket with **s3bucketroot** in its name contains the content. The one with **s3bucketlogs** contains only log files.
 1. In the bucket, delete the default content, then upload your own.
 
 ### Download the CloudFormation template
@@ -102,6 +110,7 @@ To download the CloudFormation template to deploy on your own, for example by [u
 https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-static-site/latest/main.yaml
 
 ## Customizing the Solution
+
 ### Update the website content locally
 
 **To customize the website with your own content before deploying the solution**
@@ -110,50 +119,63 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
 2. Clone or download this project from https://github.com/awslabs/aws-cloudformation-templates.
 3. Run the following command to package a build artifact.
 
-    ```shell
-    make package-function
-    ```
+   ```shell
+   make package-function
+   ```
 
 4. Copy your website content into the **www** folder.
 5. If you don’t have one already, create an S3 bucket to store the CloudFormation artifacts. To create one, use the following AWS CLI command:
 
-    ```shell
-    aws s3 mb s3://<S3 bucket name>
-    ```
+   ```shell
+   aws s3 mb s3://<S3 bucket name>
+   ```
 
 6. Run the following AWS CLI command to package the CloudFormation template. The template uses the [AWS Serverless Application Model](https://aws.amazon.com/about-aws/whats-new/2016/11/introducing-the-aws-serverless-application-model/), so it must be transformed before you can deploy it.
 
-    ```shell
-    aws --region us-east-1 cloudformation package \
-        --template-file templates/main.yaml \
-        --s3-bucket <your S3 bucket name> \
-        --output-template-file packaged.template
-    ```
+   ```shell
+   aws --region us-east-1 cloudformation package \
+       --template-file templates/main.yaml \
+       --s3-bucket <your S3 bucket name> \
+       --output-template-file packaged.template
+   ```
 
-7. Run the following command to deploy the packaged CloudFormation template to a CloudFormation stack.  To optionally deploy the stack with a domain apex skip this section and proceed to [Step 8] below.
+7. Run the following command to deploy the packaged CloudFormation template to a CloudFormation stack. To optionally deploy the stack with a domain apex skip this section and proceed to [Step 8] below.
 
-    ```shell
-    aws --region us-east-1 cloudformation deploy \
-        --stack-name <your CloudFormation stack name> \
-        --template-file packaged.template \
-        --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
-        --parameter-overrides  DomainName=<your domain name> SubDomain=<your website subdomain>
-    ```
+   ```shell
+   aws --region us-east-1 cloudformation deploy \
+       --stack-name <your CloudFormation stack name> \
+       --template-file packaged.template \
+       --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
+       --parameter-overrides  DomainName=<your domain name> SubDomain=<your website subdomain>
+   ```
 
 8. [Optional] Run the following command to deploy the packaged CloudFormation template to a CloudFormation stack with a domain apex.
 
-    ```shell
-    aws --region us-east-1 cloudformation deploy \
-        --stack-name <your CloudFormation stack name> \
-        --template-file packaged.template \
-        --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
-        --parameter-overrides  DomainName=<your domain name> SubDomain=<your website subdomain> CreateApex=yes
-    ```
+   ```shell
+   aws --region us-east-1 cloudformation deploy \
+       --stack-name <your CloudFormation stack name> \
+       --template-file packaged.template \
+       --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
+       --parameter-overrides  DomainName=<your domain name> SubDomain=<your website subdomain> CreateApex=yes
+   ```
 
-9. [Alternatively] To package and deploy using `make`:
- - If you are deploying for the first time build required layers using `make layers`
- - Edit the `.custom.mk` file with the required values. Then run `make deploy` to package and deploy the stack
+9. [QUICK DEPLOY] To package and deploy using `make`:
 
+   1. **Deploy lambda layers**: If you are deploying this solution for the first time, build required lambda layers by running: `make layers`
+   1. Edit the `.custom.mk` file with the required values.
+      - BUCKET_NAME: an exisiting bucket to store temporary files, this must be in the region where the solution will be deployed.
+      - AWS_REGION: region to deploy solution in.
+      - STACK_NAME: name of the stack.
+      - SUB_DOMAIN: the subdomain for your registered domain name. Viewers use the subdomain to access your website, for example: www.example.com. We recommend using the default value of **www** as the subdomain.
+      - DOMAIN_NAME: your registered domain name, such as example.com. This domain must be pointed to a Route 53 hosted zone.
+      - REPOSITORY: the https or ssh url of the website repository, that you use to clone the repository.
+      - BRANCH: the branch in the repository that you will be deploying.
+      - TOKEN_NAME: github-access-token (for example)
+        1. create an access token (eg: github-access-token) in git and give it read access to your repository.
+        1. add this token to AWS Secrets Manager by running `aws secretsmanager create-secret --name <github-access-token> --secret-string <github-personal-access-token>`. _Important Note:_ if you're doing this via the console, verify the token is saved as plaintext and not a key/value pair.
+      - USE_DOMAIN_NAME:false
+      - MODIFY_ORIGIN_RESPONSE:false
+   1. Run `make deploy` to package and deploy the stack
 
 ### Updating the site Content Security Policy
 
@@ -162,9 +184,10 @@ To change the Content Security Policy of the site:
 1. Make your changes to the header values by editing `source/secured-headers/index.js`.
 1. Deploy the solution by following the steps in [Update the website content locally](#update-the-website-content-locally)
 
-
 ## Contributing
+
 Contributions are welcome. Please read the [code of conduct](CODE_OF_CONDUCT.md) and the [contributing guidelines](CONTRIBUTING.md).
 
 ## License Summary
+
 This project is licensed under the Apache-2.0 License.
