@@ -49,6 +49,12 @@ Resources:
             Resource: !Sub '${S3BucketRootArn}/*'
             Principal:
               CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
+          - Action:
+              - s3:ListBucket
+            Effect: Allow
+            Resource: !Sub '${S3BucketRootArn}'
+            Principal:
+              CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
 
   LambdaEdgeFunction:
     DeletionPolicy: Retain
