@@ -47,3 +47,12 @@ package-function:
 	make clean
 	make package-static
 	cd source/secured-headers/ && zip -r ../../s-headers.zip index.js
+
+deploy-cfn:
+	make package-function
+	aws cloudformation package --template-file templates/main.yaml --s3-bucket $(TEMP_BUCKET) --output-template-file packaged.template
+	aws cloudformation deploy --template-file ./packaged.template --stack-name $(STACK_NAME) --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
+		--parameter-overrides  DomainName=$(DOMAIN_NAME) SubDomain=$(SUBDOMAIN_NAME)
+
+remove-cfn:
+	aws cloudformation delete-stack --stack-name $(STACK_NAME)

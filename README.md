@@ -121,42 +121,29 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
     aws s3 mb s3://<S3 bucket name>
     ```
 
-6. Run the following AWS CLI command to package the CloudFormation template. The template uses the [AWS Serverless Application Model](https://aws.amazon.com/about-aws/whats-new/2016/11/introducing-the-aws-serverless-application-model/), so it must be transformed before you can deploy it.
+6. Run the following to package and deploy the CloudFormation stack.
 
     ```shell
-    aws --region us-east-1 cloudformation package \
-        --template-file templates/main.yaml \
-        --s3-bucket <your S3 bucket name> \
-        --output-template-file packaged.template
-    ```
-
-7. Run the following command to deploy the packaged CloudFormation template to a CloudFormation stack.  To optionally deploy the stack with a domain apex skip this section and proceed to [Step 8] below.
-
-    ```shell
-    aws --region us-east-1 cloudformation deploy \
-        --stack-name <your CloudFormation stack name> \
-        --template-file packaged.template \
-        --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
-        --parameter-overrides  DomainName=<your domain name> SubDomain=<your website subdomain>
-    ```
-    
-8. [Optional] Run the following command to deploy the packaged CloudFormation template to a CloudFormation stack with a domain apex.
-
-    ```shell
-    aws --region us-east-1 cloudformation deploy \
-        --stack-name <your CloudFormation stack name> \
-        --template-file packaged.template \
-        --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
-        --parameter-overrides  DomainName=<your domain name> SubDomain=<your website subdomain> CreateApex=yes
+    make deploy-cfn TEMP_BUCKET=<Template bucket> \
+    STACK_NAME=<Stack Name> DOMAIN_NAME=<Domain Name> \
+    SUBDOMAIN_NAME=<Subdomain Name> CreateApex=<yes/no>
     ```
 
 
 ### Updating the site Content Security Policy
 
-To change the Content Security Policy of the site:
+~~To change the Content Security Policy of the site:
 
 1. Make your changes to the header values by editing `source/secured-headers/index.js`. 
-1. Deploy the solution by following the steps in [Update the website content locally](#update-the-website-content-locally)
+1. Deploy the solution by following the steps in [Update the website content locally](#update-the-website-content-locally)~~
+
+### Removing the Solution
+1. Run the following to delete the CloudFormation stack.
+
+    ```shell
+    make remove-cfn STACK_NAME=<Stack Name>
+    ```
+
 
 
 ## Contributing
