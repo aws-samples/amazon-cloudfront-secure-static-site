@@ -98,9 +98,6 @@ Outputs:
   CFDistributionName:
     Description: CloudFront distribution
     Value: !GetAtt CloudFrontStack.Outputs.CloudFrontDistribution
-  LambdaEdgeFunctionVersion:
-    Description: Security Lambda version
-    Value: !GetAtt CloudFrontStack.Outputs.LambdaEdgeFunctionVersion
   CloudFrontDomainName:
     Description: Website address
     Value: !GetAtt CloudFrontStack.Outputs.CloudFrontDomainName
