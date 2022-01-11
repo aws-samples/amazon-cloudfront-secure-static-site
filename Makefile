@@ -43,7 +43,10 @@ package-static:
 	make build-static
 	cd source/witch && zip -r ../../witch.zip nodejs
 
-package-function:
-	make clean
-	make package-static
-	cd source/secured-headers/ && zip -r ../../s-headers.zip index.js
+
+
+
+
+
+
+
