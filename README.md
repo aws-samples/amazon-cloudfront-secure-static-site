@@ -14,14 +14,14 @@ For more information about each of these components, see the **Solution details*
 
 The following diagram shows an overview of how the solution works:
 
-![Architecture](./docs/images/architecture.png)
+![Architecture](./docs/images/cf-secure-static-site-architecture.png)
 
 1. The viewer requests the website at www.example.com.
 2. If the requested object is cached, CloudFront returns the object from its cache to the viewer.
 3. If the object is not in CloudFront’s cache, CloudFront requests the object from the origin (an S3 bucket).
 4. S3 returns the object to CloudFront
-5. The object is added to CloudFront’s cache.
-6. (Not shown) The objects is returned to the viewer. Subsequent responses for the object are served from the CloudFront cache.
+5. CloudFront caches the object.
+6. The objects is returned to the viewer. Subsequent responses for the object are served from the CloudFront cache.
 
 ## Solution details
 
