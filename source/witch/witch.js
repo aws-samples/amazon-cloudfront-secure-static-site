@@ -67,11 +67,11 @@ function respond(event, context, responseStatus, responseData, physicalResourceI
     var https = require("https");
     var url = require("url");
  
-    var parsedUrl = url.parse(event.ResponseURL);
+    var parsedUrl = new url.URL(event.ResponseURL);
     var options = {
         hostname: parsedUrl.hostname,
         port: 443,
-        path: parsedUrl.path,
+        path: parsedUrl.pathname + parsedUrl.search,
         method: "PUT",
         headers: {
             "content-type": "",
