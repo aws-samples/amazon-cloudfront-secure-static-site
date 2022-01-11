@@ -107,6 +107,7 @@ Resources:
               EventType: origin-response
               LambdaFunctionARN: !Ref Lambdaversion
           ViewerProtocolPolicy: 'redirect-to-https'
+          ResponseHeadersPolicyId: !Ref ResponseHeadersPolicy
         CustomErrorResponses:
           - ErrorCachingMinTTL: 60
             ErrorCode: 404
@@ -171,6 +172,34 @@ Resources:
           EvaluateTargetHealth: false
           # The  following HosteZoneId is always used for alias records pointing to CF.
           HostedZoneId: 'Z2FDTNDATAQYW2'
+
+  ResponseHeadersPolicy:
+      Type: AWS::CloudFront::ResponseHeadersPolicy
+      Properties: 
+        ResponseHeadersPolicyConfig: 
+          Comment: "practera-security-headers-for-${env:APPV2S3BUCKET}"
+          Name: "practera-security-headers-for-GlobalAPPv2"
+          SecurityHeadersConfig: 
+            StrictTransportSecurity: 
+              AccessControlMaxAgeSec: 63072000
+              IncludeSubdomains: true
+              Override: true
+              Preload: true
+            ContentSecurityPolicy: 
+              ContentSecurityPolicy: "default-src 'none'; img-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'"
+              Override: true
+            ContentTypeOptions: 
+              Override: true
+            FrameOptions:
+              FrameOption: DENY
+              Override: true
+            ReferrerPolicy: 
+              ReferrerPolicy: "same-origin"
+              Override: true
+            XSSProtection: 
+              ModeBlock: true
+              Override: true
+              Protection: true
 
 Outputs:
   LambdaEdgeFunctionVersion:
