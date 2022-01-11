@@ -42,11 +42,3 @@ build-static:
 package-static:
 	make build-static
 	cd source/witch && zip -r ../../witch.zip nodejs
-
-
-
-
-
-
-
-
