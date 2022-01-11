@@ -50,44 +50,6 @@ Resources:
             Principal:
               CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
 
-  LambdaEdgeFunction:
-    DeletionPolicy: Retain
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: index.handler
-      Role: !GetAtt LambdaEdgeFunctionRole.Arn
-      CodeUri: ../s-headers.zip
-      Runtime: 'nodejs12.x'
-      Timeout: 25
-
-  Lambdaversion:
-    Type: AWS::Lambda::Version
-    Properties: 
-      FunctionName: !Ref LambdaEdgeFunction
-      Description: v1
-
-  LambdaEdgeFunctionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      Path: '/'
-      ManagedPolicyArns:
-          - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          -
-            Sid: 'AllowLambdaServiceToAssumeRole'
-            Effect: 'Allow'
-            Action:
-              - 'sts:AssumeRole'
-            Principal:
-              Service:
-              - 'lambda.amazonaws.com'
-              - 'edgelambda.amazonaws.com'
-      Tags:
-        - Key: Solution
-          Value: ACFS3
-
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
@@ -102,10 +64,6 @@ Resources:
             QueryString: true
           MaxTTL: 31536000
           TargetOriginId: !Sub 'S3-${AWS::StackName}-root'
-          LambdaFunctionAssociations:
-            - 
-              EventType: origin-response
-              LambdaFunctionARN: !Ref Lambdaversion
           ViewerProtocolPolicy: 'redirect-to-https'
           ResponseHeadersPolicyId: !Ref ResponseHeadersPolicy
         CustomErrorResponses:
@@ -202,10 +160,6 @@ Resources:
               Protection: true
 
 Outputs:
-  LambdaEdgeFunctionVersion:
-    Description: Security Lambda version
-    Value: !Ref Lambdaversion
-
   CloudFrontDistribution:
     Description: CloudFront distribution
     Value: !GetAtt CloudFrontDistribution.DomainName
