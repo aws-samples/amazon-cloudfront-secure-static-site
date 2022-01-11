@@ -21,7 +21,8 @@ The following diagram shows an overview of how the solution works:
 3. If the object is not in CloudFront’s cache, CloudFront requests the object from the origin (an S3 bucket).
 4. S3 returns the object to CloudFront
 5. CloudFront caches the object.
-6. The objects is returned to the viewer. Subsequent responses for the object are served from the CloudFront cache.
+6. The object is returned to the viewer. Subsequent responses for the object are served from the CloudFront cache.
+
 
 ## Solution details
 
