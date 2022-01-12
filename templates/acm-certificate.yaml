@@ -18,7 +18,7 @@ Conditions:
 
 Resources:
   Certificate:
-    Type: "AWS::CertificateManager::Certificate"
+    Type: AWS::CertificateManager::Certificate
     Properties: 
       DomainName: !Sub '${SubDomain}.${DomainName}'
       SubjectAlternativeNames:
