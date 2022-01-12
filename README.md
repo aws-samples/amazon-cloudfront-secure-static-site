@@ -5,7 +5,7 @@ Use this solution to create a secure static website for your registered domain n
 - Is hosted on [Amazon S3](https://aws.amazon.com/s3/)
 - Is distributed by [Amazon CloudFront](https://aws.amazon.com/cloudfront/)
 - Uses an SSL/TLS certificate from [AWS Certificate Manager (ACM)](https://aws.amazon.com/certificate-manager/)
-- Uses [Lambda@Edge](https://aws.amazon.com/lambda/edge/) to add security headers to every server response
+- Uses [CloudFront Response Header Policies](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/adding-response-headers.html) to add security headers to every server response
 - Is deployed with [AWS CloudFormation](https://aws.amazon.com/cloudformation/)
 
 For more information about each of these components, see the **Solution details** section on this page.
@@ -14,14 +14,15 @@ For more information about each of these components, see the **Solution details*
 
 The following diagram shows an overview of how the solution works:
 
-![Architecture](./docs/images/architecture.png)
+![Architecture](./docs/images/cf-secure-static-site-architecture.png)
 
 1. The viewer requests the website at www.example.com.
 2. If the requested object is cached, CloudFront returns the object from its cache to the viewer.
 3. If the object is not in CloudFront’s cache, CloudFront requests the object from the origin (an S3 bucket).
-4. S3 returns the object to CloudFront, which triggers the Lambda@Edge origin response event.
-5. The object, including the security headers added by the Lambda@Edge function, is added to CloudFront’s cache.
-6. (Not shown) The objects is returned to the viewer. Subsequent responses for the object are served from the CloudFront cache.
+4. S3 returns the object to CloudFront
+5. CloudFront caches the object.
+6. The object is returned to the viewer. Subsequent responses for the object are served from the CloudFront cache.
+
 
 ## Solution details
 
@@ -29,15 +30,15 @@ The following diagram shows an overview of how the solution works:
 This solution creates an S3 bucket that hosts your static website’s assets. The website is only accessible via CloudFront, not directly from S3.
 
 ### CloudFront configuration
-This solution creates a CloudFront distribution to serve your website to viewers. The distribution is configured with a CloudFront [origin access identity](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html) to make sure that the website is only accessible via CloudFront, not directly from S3. The distribution is also configured with a [Lambda@Edge function](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-at-the-edge.html) that adds security headers to every response.
+This solution creates a CloudFront distribution to serve your website to viewers. The distribution is configured with a CloudFront [origin access identity](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html) to make sure that the website is only accessible via CloudFront, not directly from S3. The distribution is also configured with a [CloudFront Response Header Policy](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/adding-response-headers.html) that adds security headers to every response.
 
 ### ACM configuration
 This solution creates an SSL/TLS certificate in ACM, and attaches it to the CloudFront distribution. This enables the distribution to serve your domain’s website using HTTPS.
 
-### Lambda@Edge configuration
-This solution creates a Lambda@Edge function that’s triggered on an [origin response event](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-cloudfront-trigger-events.html). The function adds security headers to every response served by CloudFront.
+### CloudFront Response Header Policy
+The CloudFront Response Header Policy adds security headers to every response served by CloudFront.
 
-The security headers can help mitigate some attacks, as explained in this blog post: [Adding HTTP Security Headers Using Lambda@Edge and Amazon CloudFront](https://aws.amazon.com/blogs/networking-and-content-delivery/adding-http-security-headers-using-lambdaedge-and-amazon-cloudfront/). Security headers are a group of headers in the web server response that tell web browsers to take extra security precautions. This solution adds the following headers to each response:
+The security headers can help mitigate some attacks, as explained in the [Amazon CloudFront - Understanding response header policies documentation](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/understanding-response-headers-policies.html#understanding-response-headers-policies-security). Security headers are a group of headers in the web server response that tell web browsers to take extra security precautions. This solution adds the following headers to each response:
 
 - [Strict-Transport-Security](https://infosec.mozilla.org/guidelines/web_security#http-strict-transport-security)
 - [Content-Security-Policy](https://infosec.mozilla.org/guidelines/web_security#content-security-policy)
@@ -111,7 +112,7 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
 3. Run the following command to package a build artifact.
 
     ```shell
-    make package-function
+    make package-static
     ```
 
 4. Copy your website content into the **www** folder.
