@@ -72,6 +72,7 @@ To deploy the solution, you use [AWS CloudFormation](https://aws.amazon.com/clou
 
     - **SubDomain:** The subdomain for your registered domain name. Viewers use the subdomain to access your website, for example: www.example.com. We recommend using the default value of **www** as the subdomain.
     - **DomainName:** Your registered domain name, such as example.com. This domain must be pointed to a Route 53 hosted zone.
+    - **HostedZoneId** The Route 53 Hosted Zone Id containing the domain being used. 
     - **CreateApex:** Optionally create an Alias to the domain apex (example.com) in your CloudFront configuration.  Default is [no]
 
    After entering values, choose the **Next** button.
@@ -138,7 +139,7 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
         --stack-name <your CloudFormation stack name> \
         --template-file packaged.template \
         --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
-        --parameter-overrides  DomainName=<your domain name> SubDomain=<your website subdomain>
+        --parameter-overrides  DomainName=<your domain name> SubDomain=<your website subdomain> HostedZoneId=<hosted zone id>
     ```
     
 8. [Optional] Run the following command to deploy the packaged CloudFormation template to a CloudFormation stack with a domain apex.
@@ -148,7 +149,7 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
         --stack-name <your CloudFormation stack name> \
         --template-file packaged.template \
         --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
-        --parameter-overrides  DomainName=<your domain name> SubDomain=<your website subdomain> CreateApex=yes
+        --parameter-overrides  DomainName=<your domain name> SubDomain=<your website subdomain> HostedZoneId=<hosted zone id> CreateApex=yes
     ```
 
 
