@@ -135,8 +135,7 @@ Resources:
       Type: AWS::CloudFront::ResponseHeadersPolicy
       Properties: 
         ResponseHeadersPolicyConfig: 
-          Comment: "practera-security-headers-for-${env:APPV2S3BUCKET}"
-          Name: "practera-security-headers-for-GlobalAPPv2"
+          Name: !Sub "${AWS::StackName}-static-site-security-headers"
           SecurityHeadersConfig: 
             StrictTransportSecurity: 
               AccessControlMaxAgeSec: 63072000

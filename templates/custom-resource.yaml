@@ -3,72 +3,6 @@ Description: ACFS3 - Cert Provider with DNS validation
 Transform: AWS::Serverless-2016-10-31
 
 Resources:
-  LambdaPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt CFNCustomProvider.Arn
-      Principal: !GetAtt LambdaRole.Arn
-
-  LambdaPolicy:
-    Type: AWS::IAM::Policy
-    DependsOn:
-      - LambdaRole
-    Properties:
-      PolicyName: CFNCertificateDomainResourceRecordProvider
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Action:
-              - acm:RequestCertificate
-              - acm:DescribeCertificate
-              - acm:UpdateCertificateOptions
-              - acm:DeleteCertificate
-            Resource:
-            - '*'
-          - Effect: Allow
-            Action:
-              - logs:*
-            Resource: arn:aws:logs:*:*:*
-      Roles:
-        - !Ref LambdaRole
-
-  LambdaRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Action:
-              - sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-      Tags:
-        - Key: Solution
-          Value: ACFS3
-
-  CFNCustomProviderLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      RetentionInDays: 7
-      LogGroupName: !Sub '/aws/lambda/${CFNCustomProvider}'
-    DependsOn:
-      - CFNCustomProvider
-
-  CFNCustomProvider:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: s3://binxio-public-us-east-1/lambdas/cfn-certificate-provider-0.2.4.zip
-      Description: CFN Certificate Domain Resource Record Provider
-      MemorySize: 128
-      Handler: provider.handler
-      Timeout: 300
-      Role: !GetAtt LambdaRole.Arn
-      Runtime: python3.6
-
   S3BucketLogs:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
@@ -135,7 +69,6 @@ Resources:
                 - arn:aws:s3:::${TargetBucket}
                 - TargetBucket: !Ref S3BucketRoot
 
-
   CopyFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -166,9 +99,6 @@ Outputs:
   S3BucketLogsName:
     Description: Logging bucket Name
     Value: !GetAtt S3BucketLogs.DomainName
-  CFNCustomProvider:
-    Description: ACM helper function
-    Value: !GetAtt CFNCustomProvider.Arn
   CopyFunction:
     Description: S3 helper function
     Value: !GetAtt CopyFunction.Arn
