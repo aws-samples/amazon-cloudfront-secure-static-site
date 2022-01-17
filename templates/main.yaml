@@ -13,7 +13,7 @@ Metadata:
 Mappings:
   Solution:
     Constants:
-      Version: 'v0.5'
+      Version: 'v0.6'
 
 Parameters:
   SubDomain:
@@ -77,7 +77,7 @@ Outputs:
   SolutionVersion:
     Value: !FindInMap [Solution, Constants, Version]
   CopyFunction:
-    Description: S3 helper function    
+    Description: S3 helper function
     Value: !GetAtt CustomResourceStack.Outputs.CopyFunction
   S3BucketLogs:
     Description: Logging bucket
@@ -92,7 +92,7 @@ Outputs:
     Description: Website bucket name
     Value: !GetAtt CustomResourceStack.Outputs.S3BucketRootName
   CertificateArn:
-    Description: Issued certificate 
+    Description: Issued certificate
     Value: !GetAtt AcmCertificateStack.Outputs.CertificateArn
   CFDistributionName:
     Description: CloudFront distribution
