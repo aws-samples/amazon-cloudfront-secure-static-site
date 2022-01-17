@@ -53,8 +53,6 @@ jobs:
       # Package and Upload Archive
       - name: Pre-Package Copy Function
         run: cd source/witch/ && npm install --prefix nodejs mime-types && cp witch.js nodejs/node_modules/ && zip -r ../../witch.zip nodejs  && cd ../../
-      - name: Pre-Package Function
-        run: cd source/secured-headers/ && zip -r ../../s-headers.zip index.js && cd ../../
       - name: Package Release
         run: zip -r packaged.zip -@ < ci/include.lst
       - name: Upload Release
