@@ -3,6 +3,12 @@ Description: ACFS3 - Cert Provider with DNS validation
 Transform: AWS::Serverless-2016-10-31
 
 Resources:
+
+  CopyCustomResource:
+    Type: "AWS::CloudFormation::CustomResource"
+    Properties:
+      ServiceToken: !GetAtt CopyFunction.Arn
+
   S3BucketLogs:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
@@ -30,7 +36,7 @@ Resources:
       Tags:
         - Key: Solution
           Value: ACFS3
-  
+
   CopyLayerVersion:
     Type: "AWS::Serverless::LayerVersion"
     Properties:
