@@ -15,6 +15,17 @@ Mappings:
     Constants:
       Version: 'v0.7'
 
+Rules:
+  OnlyUsEast1:
+    Assertions:
+      - Assert:
+          Fn::Equals:
+            - !Ref AWS::Region
+            - us-east-1
+        AssertDescription: |
+          This template can only be deployed in the us-east-1 region.
+          This is because the ACM Certificate must be created in us-east-1
+
 Parameters:
   SubDomain:
     Description: The part of a website address before your DomainName - e.g. www or img
