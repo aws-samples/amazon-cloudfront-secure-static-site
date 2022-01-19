@@ -10,7 +10,7 @@ const s3 = new aws.S3();
 const SUCCESS = "SUCCESS";
 const FAILED = "FAILED";
 
-const BUCKET = process.env.BUCKET;
+const { BUCKET } = process.env;
 
 exports.staticHandler = function (event, context) {
   if (event.RequestType !== "Create" && event.RequestType !== "Update") {
@@ -43,9 +43,8 @@ exports.staticHandler = function (event, context) {
 };
 
 // List all files in a directory in Node.js recursively in a synchronous fashion
-function walkSync(dir, filelist) {
+function walkSync(dir, filelist = []) {
   const files = fs.readdirSync(dir);
-  filelist = filelist || [];
 
   files.forEach(function (file) {
     if (fs.statSync(path.join(dir, file)).isDirectory()) {
