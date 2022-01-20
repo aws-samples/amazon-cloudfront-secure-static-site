@@ -53,6 +53,9 @@ For more information, see [Mozilla’s web security guidelines](https://infosec.
 You must have a registered domain name, such as example.com, and point it to a Route 53 hosted zone in the same AWS account in which you deploy this solution. For more information, see [Configuring Amazon Route 53 as your DNS service](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html).
 
 ## Deploy the solution
+
+> :⚠️ This template can only be deployed in the `us-east-1` region
+
 To deploy the solution, you use [AWS CloudFormation](https://aws.amazon.com/cloudformation). You can use the CloudFormation console, or download the CloudFormation template to deploy it on your own.
 
 > **Note:** You must have IAM permissions to launch CloudFormation templates that create IAM roles, and to create all the AWS resources in the solution. Also, you are responsible for the cost of the AWS services used while running this solution. For more information about costs, see the pricing pages for each AWS service.
@@ -72,14 +75,14 @@ To deploy the solution, you use [AWS CloudFormation](https://aws.amazon.com/clou
 
     - **SubDomain:** The subdomain for your registered domain name. Viewers use the subdomain to access your website, for example: www.example.com. We recommend using the default value of **www** as the subdomain.
     - **DomainName:** Your registered domain name, such as example.com. This domain must be pointed to a Route 53 hosted zone.
-    - **HostedZoneId** The Route 53 Hosted Zone Id containing the domain being used. 
+    - **HostedZoneId** The Route 53 Hosted Zone Id containing the domain being used.
     - **CreateApex:** Optionally create an Alias to the domain apex (example.com) in your CloudFront configuration.  Default is [no]
 
    After entering values, choose the **Next** button.
 5. On the **Configure stack options** page, you can optionally [add tags and other stack options](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-add-tags.html). When finished, choose the **Next** button.
 6. On the **Review** page, you must scroll down and check the two boxes in the **Capabilities** section:
 
-    - **I acknowledge that AWS CloudFormation might create IAM resources with custom names.** 
+    - **I acknowledge that AWS CloudFormation might create IAM resources with custom names.**
     - **I acknowledge that AWS CloudFormation might require the following capability: CAPABILITY_AUTO_EXPAND**
 
     These capabilities allow CloudFormation to create an IAM role that allows access
@@ -104,7 +107,7 @@ To download the CloudFormation template to deploy on your own, for example by [u
 https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-static-site/latest/main.yaml
 
 ## Customizing the Solution
-### Update the website content locally 
+### Update the website content locally
 
 **To customize the website with your own content before deploying the solution**
 
@@ -141,7 +144,7 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
         --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
         --parameter-overrides  DomainName=<your domain name> SubDomain=<your website subdomain> HostedZoneId=<hosted zone id>
     ```
-    
+
 8. [Optional] Run the following command to deploy the packaged CloudFormation template to a CloudFormation stack with a domain apex.
 
     ```shell
@@ -157,7 +160,7 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
 
 To change the Content Security Policy of the site:
 
-1. Make your changes to the header values by editing `source/secured-headers/index.js`. 
+1. Make your changes to the header values by editing `source/secured-headers/index.js`.
 1. Deploy the solution by following the steps in [Update the website content locally](#update-the-website-content-locally)
 
 
