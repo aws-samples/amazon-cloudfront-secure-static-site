@@ -31,8 +31,8 @@ Resources:
           HostedZoneId: !Ref HostedZoneId
         - Fn::If:
           - CreateApexConfig
-          - - DomainName: !Ref DomainName
-              HostedZoneId: !Ref HostedZoneId
+          - DomainName: !Ref DomainName
+            HostedZoneId: !Ref HostedZoneId
           - Ref: AWS::NoValue
       ValidationMethod: DNS
 
