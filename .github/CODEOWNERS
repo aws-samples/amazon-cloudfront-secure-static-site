@@ -1,0 +1,3 @@
+# These owners will be the default owners for everything in the repo.
+# @aws-uk-solution-builders will be requested for review when someone opens a pull request.
+* @aws-samples/aws-uk-solution-builders
