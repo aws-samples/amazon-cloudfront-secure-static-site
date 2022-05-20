@@ -12,14 +12,14 @@ Parameters:
     Type: String
 
 Conditions:
-  CreateApexConfig:  !Equals 
+  CreateApexConfig:  !Equals
     - !Ref CreateApex
     - 'yes'
 
 Resources:
   Certificate:
     Type: AWS::CertificateManager::Certificate
-    Properties: 
+    Properties:
       DomainName: !Sub '${SubDomain}.${DomainName}'
       SubjectAlternativeNames:
         Fn::If:
@@ -29,9 +29,14 @@ Resources:
       DomainValidationOptions:
         - DomainName: !Sub '${SubDomain}.${DomainName}'
           HostedZoneId: !Ref HostedZoneId
+        - Fn::If:
+          - CreateApexConfig
+          - - DomainName: !Ref DomainName
+              HostedZoneId: !Ref HostedZoneId
+          - Ref: AWS::NoValue
       ValidationMethod: DNS
 
 Outputs:
-  CertificateArn: 
+  CertificateArn:
     Description: Issued certificate
     Value: !Ref Certificate
