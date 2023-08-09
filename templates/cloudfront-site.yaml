@@ -43,12 +43,14 @@ Resources:
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
-          - Action:
-              - s3:GetObject
+          - Action: s3:GetObject
+            Principal:
+              Service: 'cloudfront.amazonaws.com'
             Effect: Allow
             Resource: !Sub '${S3BucketRootArn}/*'
-            Principal:
-              CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
+            Condition:
+              StringEquals:
+                'AWS:SourceArn': !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}'
 
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
@@ -86,8 +88,8 @@ Resources:
         Origins:
           - DomainName: !Ref 'S3BucketRootName'
             Id: !Sub 'S3-${AWS::StackName}-root'
-            S3OriginConfig:
-              OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}'
+            OriginAccessControlId: !Ref OriginAccessControl
+            S3OriginConfig: {}
         PriceClass: 'PriceClass_All'
         ViewerCertificate:
           AcmCertificateArn: !Ref 'CertificateArn'
@@ -97,11 +99,14 @@ Resources:
         - Key: Solution
           Value: ACFS3
 
-  CloudFrontOriginAccessIdentity:
-    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+  OriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
     Properties:
-      CloudFrontOriginAccessIdentityConfig:
-        Comment: !Sub 'CloudFront OAI for ${SubDomain}.${DomainName}'
+      OriginAccessControlConfig:
+        Name: !Sub 'oac-${AWS::StackName}'
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
 
   Route53RecordSetGroup:
     Type: AWS::Route53::RecordSetGroup
