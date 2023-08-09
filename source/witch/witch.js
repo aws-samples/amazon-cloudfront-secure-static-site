@@ -1,25 +1,25 @@
-const aws = require("aws-sdk");
-const fs = require("fs");
-const path = require("path");
-const mime = require("mime-types");
-const https = require("https");
-const url = require("url");
+const aws = require('aws-sdk');
+const fs = require('fs');
+const path = require('path');
+const mime = require('mime-types');
+const https = require('https');
+const url = require('url');
 
 const s3 = new aws.S3();
 
-const SUCCESS = "SUCCESS";
-const FAILED = "FAILED";
+const SUCCESS = 'SUCCESS';
+const FAILED = 'FAILED';
 
 const { BUCKET } = process.env;
 
 exports.staticHandler = function (event, context) {
-  if (event.RequestType !== "Create" && event.RequestType !== "Update") {
+  if (event.RequestType !== 'Create' && event.RequestType !== 'Update') {
     return respond(event, context, SUCCESS, {});
   }
 
   Promise.all(
-    walkSync("./").map((file) => {
-      const fileType = mime.lookup(file) || "application/octet-stream";
+    walkSync('./').map((file) => {
+      const fileType = mime.lookup(file) || 'application/octet-stream';
 
       console.log(`${file} -> ${fileType}`);
 
@@ -29,10 +29,10 @@ exports.staticHandler = function (event, context) {
           Bucket: BUCKET,
           ContentType: fileType,
           Key: file,
-          ACL: "private",
+          ACL: 'private',
         })
         .promise();
-    })
+    }),
   )
     .then((msg) => {
       respond(event, context, SUCCESS, {});
@@ -63,12 +63,12 @@ function respond(
   responseStatus,
   responseData,
   physicalResourceId,
-  noEcho
+  noEcho,
 ) {
   const responseBody = JSON.stringify({
     Status: responseStatus,
     Reason:
-      "See the details in CloudWatch Log Stream: " + context.logStreamName,
+      'See the details in CloudWatch Log Stream: ' + context.logStreamName,
     PhysicalResourceId: physicalResourceId || context.logStreamName,
     StackId: event.StackId,
     RequestId: event.RequestId,
@@ -77,28 +77,28 @@ function respond(
     Data: responseData,
   });
 
-  console.log("Response body:\n", responseBody);
+  console.log('Response body:\n', responseBody);
 
   const { pathname, hostname, search } = new url.URL(event.ResponseURL);
   const options = {
     hostname,
     port: 443,
     path: pathname + search,
-    method: "PUT",
+    method: 'PUT',
     headers: {
-      "content-type": "",
-      "content-length": responseBody.length,
+      'content-type': '',
+      'content-length': responseBody.length,
     },
   };
 
   const request = https.request(options, function (response) {
-    console.log("Status code: " + response.statusCode);
-    console.log("Status message: " + response.statusMessage);
+    console.log('Status code: ' + response.statusCode);
+    console.log('Status message: ' + response.statusMessage);
     context.done();
   });
 
-  request.on("error", function (error) {
-    console.log("send(..) failed executing https.request(..): " + error);
+  request.on('error', function (error) {
+    console.log('send(..) failed executing https.request(..): ' + error);
     context.done();
   });
 
