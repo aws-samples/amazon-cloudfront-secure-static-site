@@ -30,3 +30,8 @@ repos:
         name: AWS CloudFormation Linter
         files: \.(template)$
         args: [--ignore-checks=W3002]
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.0.1
+    hooks:
+      - id: prettier
