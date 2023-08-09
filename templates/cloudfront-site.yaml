@@ -27,11 +27,11 @@ Parameters:
   S3BucketRootArn:
     Description: Content Bucket locator
     Type: String
-  CreateApex: 
+  CreateApex:
     Type: String
 
 Conditions:
-  CreateApexConfig:  !Equals
+  CreateApexConfig: !Equals
     - !Ref CreateApex
     - 'yes'
 
@@ -56,7 +56,7 @@ Resources:
       DistributionConfig:
         Aliases:
           - !Sub '${SubDomain}.${DomainName}'
-          - !If [ CreateApexConfig, !Ref DomainName, !Ref 'AWS::NoValue' ]
+          - !If [CreateApexConfig, !Ref DomainName, !Ref 'AWS::NoValue']
         DefaultCacheBehavior:
           Compress: true
           DefaultTTL: 86400
@@ -87,8 +87,7 @@ Resources:
           - DomainName: !Ref 'S3BucketRootName'
             Id: !Sub 'S3-${AWS::StackName}-root'
             S3OriginConfig:
-              OriginAccessIdentity:
-                !Join ['', ['origin-access-identity/cloudfront/', !Ref CloudFrontOriginAccessIdentity]]
+              OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}'
         PriceClass: 'PriceClass_All'
         ViewerCertificate:
           AcmCertificateArn: !Ref 'CertificateArn'
@@ -103,19 +102,19 @@ Resources:
     Properties:
       CloudFrontOriginAccessIdentityConfig:
         Comment: !Sub 'CloudFront OAI for ${SubDomain}.${DomainName}'
-        
+
   Route53RecordSetGroup:
     Type: AWS::Route53::RecordSetGroup
     Properties:
       HostedZoneName: !Sub '${DomainName}.'
       RecordSets:
-      - Name: !Sub '${SubDomain}.${DomainName}'
-        Type: 'A'
-        AliasTarget:
-          DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
-          EvaluateTargetHealth: false
-          # The  following HosteZoneId is always used for alias records pointing to CF.
-          HostedZoneId: 'Z2FDTNDATAQYW2'
+        - Name: !Sub '${SubDomain}.${DomainName}'
+          Type: 'A'
+          AliasTarget:
+            DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
+            EvaluateTargetHealth: false
+            # The  following HosteZoneId is always used for alias records pointing to CF.
+            HostedZoneId: 'Z2FDTNDATAQYW2'
 
   ApexRoute53RecordSetGroup:
     Condition: CreateApexConfig
@@ -123,40 +122,40 @@ Resources:
     Properties:
       HostedZoneName: !Sub '${DomainName}.'
       RecordSets:
-      - Name: !Ref 'DomainName'
-        Type: 'A'
-        AliasTarget:
-          DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
-          EvaluateTargetHealth: false
-          # The  following HosteZoneId is always used for alias records pointing to CF.
-          HostedZoneId: 'Z2FDTNDATAQYW2'
+        - Name: !Ref 'DomainName'
+          Type: 'A'
+          AliasTarget:
+            DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
+            EvaluateTargetHealth: false
+            # The  following HosteZoneId is always used for alias records pointing to CF.
+            HostedZoneId: 'Z2FDTNDATAQYW2'
 
   ResponseHeadersPolicy:
-      Type: AWS::CloudFront::ResponseHeadersPolicy
-      Properties: 
-        ResponseHeadersPolicyConfig: 
-          Name: !Sub "${AWS::StackName}-static-site-security-headers"
-          SecurityHeadersConfig: 
-            StrictTransportSecurity: 
-              AccessControlMaxAgeSec: 63072000
-              IncludeSubdomains: true
-              Override: true
-              Preload: true
-            ContentSecurityPolicy: 
-              ContentSecurityPolicy: "default-src 'none'; img-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'"
-              Override: true
-            ContentTypeOptions: 
-              Override: true
-            FrameOptions:
-              FrameOption: DENY
-              Override: true
-            ReferrerPolicy: 
-              ReferrerPolicy: "same-origin"
-              Override: true
-            XSSProtection: 
-              ModeBlock: true
-              Override: true
-              Protection: true
+    Type: AWS::CloudFront::ResponseHeadersPolicy
+    Properties:
+      ResponseHeadersPolicyConfig:
+        Name: !Sub '${AWS::StackName}-static-site-security-headers'
+        SecurityHeadersConfig:
+          StrictTransportSecurity:
+            AccessControlMaxAgeSec: 63072000
+            IncludeSubdomains: true
+            Override: true
+            Preload: true
+          ContentSecurityPolicy:
+            ContentSecurityPolicy: "default-src 'none'; img-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'"
+            Override: true
+          ContentTypeOptions:
+            Override: true
+          FrameOptions:
+            FrameOption: DENY
+            Override: true
+          ReferrerPolicy:
+            ReferrerPolicy: 'same-origin'
+            Override: true
+          XSSProtection:
+            ModeBlock: true
+            Override: true
+            Protection: true
 
 Outputs:
   CloudFrontDistribution:

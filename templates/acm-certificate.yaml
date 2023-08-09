@@ -12,7 +12,7 @@ Parameters:
     Type: String
 
 Conditions:
-  CreateApexConfig:  !Equals
+  CreateApexConfig: !Equals
     - !Ref CreateApex
     - 'yes'
 
@@ -30,10 +30,10 @@ Resources:
         - DomainName: !Sub '${SubDomain}.${DomainName}'
           HostedZoneId: !Ref HostedZoneId
         - Fn::If:
-          - CreateApexConfig
-          - DomainName: !Ref DomainName
-            HostedZoneId: !Ref HostedZoneId
-          - Ref: AWS::NoValue
+            - CreateApexConfig
+            - DomainName: !Ref DomainName
+              HostedZoneId: !Ref HostedZoneId
+            - Ref: AWS::NoValue
       ValidationMethod: DNS
 
 Outputs:

@@ -42,7 +42,7 @@ Parameters:
     Description: Create an Apex Alias in CloudFront distribution - yes/no
     Type: String
     Default: 'no'
-    AllowedValues: ['yes','no']
+    AllowedValues: ['yes', 'no']
 
 Resources:
   CustomResourceStack:

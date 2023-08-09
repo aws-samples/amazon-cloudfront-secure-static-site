@@ -3,9 +3,8 @@ Description: ACFS3 - Cert Provider with DNS validation
 Transform: AWS::Serverless-2016-10-31
 
 Resources:
-
   CopyCustomResource:
-    Type: "AWS::CloudFormation::CustomResource"
+    Type: 'AWS::CloudFormation::CustomResource'
     Properties:
       ServiceToken: !GetAtt CopyFunction.Arn
 
@@ -40,14 +39,14 @@ Resources:
           Value: ACFS3
 
   CopyLayerVersion:
-    Type: "AWS::Serverless::LayerVersion"
+    Type: 'AWS::Serverless::LayerVersion'
     Properties:
       ContentUri: ../witch.zip
       CompatibleRuntimes:
         - nodejs16.x
 
   CopyRole:
-    Type: "AWS::IAM::Role"
+    Type: 'AWS::IAM::Role'
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -59,23 +58,23 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Policies:
-      - PolicyName: S3CopyPolicy
-        PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-          - Effect: Allow
-            Action:
-            - s3:GetObject
-            - s3:ListBucket
-            - s3:PutObject
-            - s3:PutObjectAcl
-            Resource:
-              - !Sub
-                - arn:aws:s3:::${TargetBucket}/*
-                - TargetBucket: !Ref S3BucketRoot
-              - !Sub
-                - arn:aws:s3:::${TargetBucket}
-                - TargetBucket: !Ref S3BucketRoot
+        - PolicyName: S3CopyPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:PutObject
+                  - s3:PutObjectAcl
+                Resource:
+                  - !Sub
+                    - arn:aws:s3:::${TargetBucket}/*
+                    - TargetBucket: !Ref S3BucketRoot
+                  - !Sub
+                    - arn:aws:s3:::${TargetBucket}
+                    - TargetBucket: !Ref S3BucketRoot
 
   CopyFunction:
     Type: AWS::Serverless::Function
