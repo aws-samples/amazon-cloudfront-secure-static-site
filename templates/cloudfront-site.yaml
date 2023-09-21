@@ -103,7 +103,11 @@ Resources:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
-        Name: !Sub 'oac-${AWS::StackName}-${AWS::Region}'
+        # Get a unique ID for the OAC Config name.
+        # Name must be unique within account
+        Name: !Sub
+          - amzn-secure-static-site-${guid}
+          - guid: !Select [2, !Split ['/', !Ref 'AWS::StackId']]
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
