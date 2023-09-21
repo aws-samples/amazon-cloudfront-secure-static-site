@@ -16,7 +16,7 @@ Metadata:
 Mappings:
   Solution:
     Constants:
-      Version: 'v0.10'
+      Version: 'v0.11'
 
 Rules:
   OnlyUsEast1:
