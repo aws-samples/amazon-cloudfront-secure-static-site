@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: |
   ACFS3 - S3 Static site with CF and ACM
   https://github.com/aws-samples/amazon-cloudfront-secure-static-site
-  (uksb-1qnk6ni7b) (version:v0.5)
+  (uksb-1qnk6ni7b) (version:v0.12)
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -16,7 +16,7 @@ Metadata:
 Mappings:
   Solution:
     Constants:
-      Version: 'v0.11'
+      Version: 'v0.12'
 
 Rules:
   OnlyUsEast1:
