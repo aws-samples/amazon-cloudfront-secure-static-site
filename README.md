@@ -166,7 +166,7 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
 
 To change the Response Header Policy of the site:
 
-1. Make your changes by editing ResponseHeadersPolicy in ./templates/cloudfront-site.yaml. Here you can modify any of the headers for Strict-Transport-Security, Content-Security-Policy, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, and Referrer-Policy. 
+1. Make your changes by editing ResponseHeadersPolicy in `templates/cloudfront-site.yaml`. Here you can modify any of the headers for Strict-Transport-Security, Content-Security-Policy, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, and Referrer-Policy. 
 2. Deploy the solution by following the steps in [Update the website content locally](#update-the-website-content-locally)
 
 ## Contributing
