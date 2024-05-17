@@ -162,12 +162,12 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
        --parameter-overrides  DomainName=<your domain name> SubDomain=<your website subdomain> HostedZoneId=<hosted zone id> CreateApex=yes
    ```
 
-### Updating the site Content Security Policy
+### Updating the site Response Headers
 
-To change the Content Security Policy of the site:
+To change the Response Header Policy of the site:
 
-1. Make your changes to the header values by editing `source/secured-headers/index.js`.
-1. Deploy the solution by following the steps in [Update the website content locally](#update-the-website-content-locally)
+1. Make your changes by editing ResponseHeadersPolicy in `templates/cloudfront-site.yaml`. Here you can modify any of the headers for Strict-Transport-Security, Content-Security-Policy, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, and Referrer-Policy. 
+2. Deploy the solution by following the steps in [Update the website content locally](#update-the-website-content-locally)
 
 ## Contributing
 
