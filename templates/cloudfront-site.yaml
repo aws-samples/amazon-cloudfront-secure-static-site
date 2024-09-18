@@ -71,12 +71,12 @@ Resources:
         CustomErrorResponses:
           - ErrorCachingMinTTL: 60
             ErrorCode: 404
-            ResponseCode: 404
-            ResponsePagePath: '/404.html'
+            ResponseCode: 200
+            ResponsePagePath: '/index.html'
           - ErrorCachingMinTTL: 60
             ErrorCode: 403
-            ResponseCode: 403
-            ResponsePagePath: '/403.html'
+            ResponseCode: 200
+            ResponsePagePath: '/index.html'
         Enabled: true
         HttpVersion: 'http2'
         DefaultRootObject: 'index.html'
@@ -150,9 +150,10 @@ Resources:
             IncludeSubdomains: true
             Override: true
             Preload: true
-          ContentSecurityPolicy:
-            ContentSecurityPolicy: "default-src 'none'; img-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'"
-            Override: true
+          #Currently commented out until we have some time to better define this for the SquarePeg frontend application
+          #ContentSecurityPolicy:
+            #ContentSecurityPolicy: "default-src 'none'; img-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'"
+            #Override: true
           ContentTypeOptions:
             Override: true
           FrameOptions:

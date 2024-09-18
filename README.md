@@ -1,5 +1,13 @@
 # Amazon CloudFront Secure Static Website
 
+## SquarePeg use and customizations
+This template is used to easily create CloudFormation stacks for the SquarePeg V2 frontend application. As a quick summary, it creates S3 resources for storing code, an SSL certificate and the Cloudfront distribution.
+
+### SP customizations:
+1. 404 and 403 error pages on Cloudfront have been customized to return a 200 HTTP code and forward to /index.html. This allows the Angular framework to deal with these exceptional cases.
+2. The ContentSecurityPolicy from the Cloudfront ResponseHeaderPolicy has been removed / commented out. TODO: This needs to be revisited and a proper policy implemented.
+    
+## Amazon README starts here
 Use this solution to create a secure static website for your registered domain name. With this solution, your website:
 
 - Is hosted on [Amazon S3](https://aws.amazon.com/s3/)
