@@ -6,7 +6,8 @@ Resources:
   CopyCustomResource:
     Type: 'AWS::CloudFormation::CustomResource'
     Properties:
-      ServiceToken: !GetAtt CopyFunction.Arn
+      ServiceToken: !GetAtt CopyFunction.Arn 
+      ServiceTimeout: 30
 
   S3BucketLogs:
     Type: AWS::S3::Bucket
