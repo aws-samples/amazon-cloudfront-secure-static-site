@@ -152,7 +152,7 @@ Resources:
             Preload: true
           #Currently commented out until we have some time to better define this for the SquarePeg frontend application
           #ContentSecurityPolicy:
-            #ContentSecurityPolicy: "default-src 'none'; img-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'"
+            #ContentSecurityPolicy: "default-src 'none'; connect-src 'self' https://*.kombo.dev; img-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'"
             #Override: true
           ContentTypeOptions:
             Override: true
