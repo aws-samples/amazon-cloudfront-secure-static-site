@@ -130,7 +130,7 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
 5. If you don’t have one already, create an S3 bucket to store the CloudFormation artifacts. To create one, use the following AWS CLI command:
 
    ```shell
-   aws s3 mb s3://<S3 bucket name>
+   aws s3 mb s3://<S3 bucket name> --region us-east-1
    ```
 
 6. Run the following AWS CLI command to package the CloudFormation template. The template uses the [AWS Serverless Application Model](https://aws.amazon.com/about-aws/whats-new/2016/11/introducing-the-aws-serverless-application-model/), so it must be transformed before you can deploy it.
