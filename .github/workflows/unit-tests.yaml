@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '2.6'
+          ruby-version: '3.4.4'
       - run: gem install cfn-nag
       - uses: actions/checkout@v2
       # Run Tests
