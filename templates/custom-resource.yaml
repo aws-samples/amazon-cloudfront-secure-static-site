@@ -2,6 +2,27 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: ACFS3 - Cert Provider with DNS validation
 Transform: AWS::Serverless-2016-10-31
 
+Parameters:
+  SubDomain:
+    Description: The part of a website address before your DomainName - e.g. www or img
+    Type: String
+    Default: www
+    AllowedPattern: ^[^.]*$
+  DomainName:
+    Description: The part of a website address after your SubDomain - e.g. example.com
+    Type: String
+  Environment:
+    Type: String
+    Description: 'Environment name'
+    Default: 'dev'
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+
+Conditions:
+  SubDomainExists: !Not [!Equals [!Ref SubDomain, ""]]
+
 Resources:
   CopyCustomResource:
     Type: 'AWS::CloudFormation::CustomResource'
@@ -13,6 +34,14 @@ Resources:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
     Properties:
+      BucketName: !Sub 
+        # TODO: see if we can use name instead of fullDomain
+        - '${FullDomain}-logs-${Environment}-${AWS::AccountId}-${AWS::Region}'
+        # TODO: extract if possible
+        - FullDomain: !If
+            - SubDomainExists
+            - !Sub '${SubDomain}.${DomainName}'
+            - !Ref DomainName
       OwnershipControls:
         Rules:
           - ObjectOwnership: BucketOwnerPreferred
@@ -21,6 +50,7 @@ Resources:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
       Tags:
+        # TODO: add environmant tag
         - Key: Solution
           Value: ACFS3
 
@@ -28,6 +58,12 @@ Resources:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
     Properties:
+      BucketName: !Sub 
+        - '${FullDomain}-root-${Environment}-${AWS::AccountId}-${AWS::Region}'
+        - FullDomain: !If
+            - SubDomainExists
+            - !Sub '${SubDomain}.${DomainName}'
+            - !Ref DomainName
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:

@@ -46,12 +46,24 @@ Parameters:
     Type: String
     Default: 'no'
     AllowedValues: ['yes', 'no']
+  Environment:
+    Type: String
+    Description: 'Environment name'
+    Default: 'dev'
+    AllowedValues:
+      - dev
+      - staging
+      - prod
 
 Resources:
   CustomResourceStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: ./custom-resource.yaml
+      Parameters:
+        SubDomain: !Ref SubDomain
+        DomainName: !Ref DomainName
+        Environment: !Ref Environment
       Tags:
         - Key: Solution
           Value: ACFS3
@@ -114,3 +126,6 @@ Outputs:
   CloudFrontDomainName:
     Description: Website address
     Value: !GetAtt CloudFrontStack.Outputs.CloudFrontDomainName
+  CFDistributionId:
+    Description: CloudFront distribution
+    Value: !GetAtt CloudFrontStack.Outputs.CloudFrontDistributionId

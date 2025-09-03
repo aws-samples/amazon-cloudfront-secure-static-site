@@ -174,3 +174,7 @@ Outputs:
   CloudFrontDomainName:
     Description: Website address
     Value: !Sub '${SubDomain}.${DomainName}'
+
+  CloudFrontDistributionId:
+    Description: CloudFront distribution
+    Value: !GetAtt CloudFrontDistribution.Id
