@@ -27,7 +27,7 @@ witch.zip
 **/npm-debug.log
 **/testem.log
 **/.env
-# package-lock.json
+package-lock.json
 **/.vscode/settings.json
 **/setenv.sh
 
