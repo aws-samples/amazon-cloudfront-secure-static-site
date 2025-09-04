@@ -14,7 +14,6 @@ Parameters:
   Environment:
     Type: String
     Description: 'Environment name'
-    Default: 'dev'
     AllowedValues:
       - dev
       - staging
@@ -35,8 +34,9 @@ Resources:
     DeletionPolicy: Retain
     Properties:
       BucketName: !Sub 
-        # TODO: see if we can use name instead of fullDomain
-        - '${FullDomain}-logs-${Environment}-${AWS::AccountId}-${AWS::Region}'
+        # TODO: see if we can use name + environment instead of fullDomain
+        - '${FullDomain}-logs-${AWS::AccountId}-${AWS::Region}'
+        
         # TODO: extract if possible
         - FullDomain: !If
             - SubDomainExists
@@ -50,16 +50,18 @@ Resources:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
       Tags:
-        # TODO: add environmant tag
         - Key: Solution
           Value: ACFS3
+        - Key: Environment
+          Value: !Ref Environment
 
   S3BucketRoot:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
     Properties:
       BucketName: !Sub 
-        - '${FullDomain}-root-${Environment}-${AWS::AccountId}-${AWS::Region}'
+        # TODO: see if we can use name + environment instead of fullDomain
+        - '${FullDomain}-root-${AWS::AccountId}-${AWS::Region}'
         - FullDomain: !If
             - SubDomainExists
             - !Sub '${SubDomain}.${DomainName}'
@@ -74,6 +76,8 @@ Resources:
       Tags:
         - Key: Solution
           Value: ACFS3
+        - Key: Environment
+          Value: !Ref Environment
 
   CopyLayerVersion:
     Type: 'AWS::Serverless::LayerVersion'
@@ -126,6 +130,10 @@ Resources:
       Role: !GetAtt CopyRole.Arn
       Runtime: nodejs20.x
       Timeout: 300
+      Tags:
+        Solution: ACFS3
+        Environment: !Ref Environment
+
 
 Outputs:
   S3BucketRoot:

@@ -49,7 +49,6 @@ Parameters:
   Environment:
     Type: String
     Description: 'Environment name'
-    Default: 'dev'
     AllowedValues:
       - dev
       - staging
@@ -67,6 +66,8 @@ Resources:
       Tags:
         - Key: Solution
           Value: ACFS3
+        - Key: Environment
+          Value: !Ref Environment
 
   AcmCertificateStack:
     Type: AWS::CloudFormation::Stack
@@ -77,9 +78,12 @@ Resources:
         DomainName: !Ref DomainName
         CreateApex: !Ref CreateApex
         HostedZoneId: !Ref HostedZoneId
+        Environment: !Ref Environment
       Tags:
         - Key: Solution
           Value: ACFS3
+        - Key: Environment
+          Value: !Ref Environment
 
   CloudFrontStack:
     Type: AWS::CloudFormation::Stack
@@ -95,9 +99,12 @@ Resources:
         S3BucketRootArn: !GetAtt CustomResourceStack.Outputs.S3BucketRootArn
         S3BucketLogs: !GetAtt CustomResourceStack.Outputs.S3BucketLogs
         S3BucketLogsName: !GetAtt CustomResourceStack.Outputs.S3BucketLogsName
+        Environment: !Ref Environment
       Tags:
         - Key: Solution
           Value: ACFS3
+        - Key: Environment
+          Value: !Ref Environment
 
 Outputs:
   SolutionVersion:

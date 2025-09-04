@@ -1,12 +1,17 @@
 #!/bin/bash
 
-source ./scripts/helpers.sh
+SCRIPTS_DIR=$(dirname "$0")
+ROOT_DIR=$(dirname "$0")/..
+
+source "$SCRIPTS_DIR/helpers.sh"
 
 # Disable automatic pagination for AWS CLI commands
 export AWS_PAGER=""
 
+# TODO: extract configuration; parametrize input
+
 NAME="aw1"
-ENVIRONMENT="prod"
+ENVIRONMENT="dev"  # dev | staging | prod
 STACK_NAME="${NAME}-${ENVIRONMENT}"
 REGION="us-east-1"
 PACKAGE_BUCKET="${NAME}-cf-templates-${REGION}"
@@ -15,7 +20,12 @@ DOMAIN="andrejkolic.com"
 SUBDOMAIN="${NAME}-${ENVIRONMENT}"
 HOSTED_ZONE_ID="Z00295123IDZ7CVMX671W"
 
-PARAMETER_DEFINITIONS="DomainName=${DOMAIN} SubDomain=${SUBDOMAIN} HostedZoneId=${HOSTED_ZONE_ID} CreateApex=no"
+PARAMETER_DEFINITIONS="\
+    DomainName=${DOMAIN} \
+    SubDomain=${SUBDOMAIN} \
+    HostedZoneId=${HOSTED_ZONE_ID} \
+    Environment=${ENVIRONMENT} \
+"
 
 package_artifacts() {
     print_info "Packaging artifacts..."
@@ -25,9 +35,9 @@ package_artifacts() {
     # Package the solution’s artifacts as a CloudFormation template
     if ! aws cloudformation package \
         --region $REGION \
-        --template-file templates/main.yaml \
+        --template-file ${ROOT_DIR}/templates/main.yaml \
         --s3-bucket $PACKAGE_BUCKET \
-        --output-template-file packaged.template
+        --output-template-file ${ROOT_DIR}/packaged.template
     then
         print_error "Failed to package artifacts"
         exit 1
@@ -39,9 +49,10 @@ deploy_infrastructure() {
     if ! aws cloudformation deploy \
         --region $REGION \
         --stack-name $STACK_NAME \
-        --template-file packaged.template \
+        --template-file ${ROOT_DIR}/packaged.template \
         --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
-        --parameter-overrides $PARAMETER_DEFINITIONS
+        --parameter-overrides $PARAMETER_DEFINITIONS \
+        --tags Solution=ACFS3 Environment=$ENVIRONMENT
     then
         print_error "Failed to deploy infrastructure"
         exit 1
@@ -77,7 +88,6 @@ invalidate_cloudfront_cache() {
     print_info "Invalidating CloudFront cache..."
 
     # Get the CloudFront Distribution ID from CloudFormation outputs
-        # --query "Stacks[0].Outputs[?OutputKey=='CFDistributionName'].OutputValue" \
     DISTRIBUTION_ID=$(aws cloudformation describe-stacks \
         --region $REGION \
         --stack-name $STACK_NAME \
@@ -108,6 +118,7 @@ main() {
     print_success "Deployment completed successfully."
 }
 
-# main
-sync_site_content
-invalidate_cloudfront_cache
+main
+
+# sync_site_content
+# invalidate_cloudfront_cache

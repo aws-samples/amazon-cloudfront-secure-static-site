@@ -10,6 +10,13 @@ Parameters:
     Type: String
   HostedZoneId:
     Type: String
+  Environment:
+    Type: String
+    Description: 'Environment name'
+    AllowedValues:
+      - dev
+      - staging
+      - prod
 
 Conditions:
   CreateApexConfig: !Equals
@@ -35,7 +42,12 @@ Resources:
               HostedZoneId: !Ref HostedZoneId
             - Ref: AWS::NoValue
       ValidationMethod: DNS
-
+      Tags:
+        - Key: Solution
+          Value: ACFS3
+        - Key: Environment
+          Value: !Ref Environment
+      
 Outputs:
   CertificateArn:
     Description: Issued certificate
