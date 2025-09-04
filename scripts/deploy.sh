@@ -8,24 +8,48 @@ source "$SCRIPTS_DIR/helpers.sh"
 # Disable automatic pagination for AWS CLI commands
 export AWS_PAGER=""
 
-# TODO: extract configuration; parametrize input
+# Default values
+ENVIRONMENT=${1:-dev}
+ACTION=${2:-deploy}
+CONFIG_FILE="${ROOT_DIR}/deploy-config.json"
 
-NAME="aw1"
-ENVIRONMENT="dev"  # dev | staging | prod
-STACK_NAME="${NAME}-${ENVIRONMENT}"
-REGION="us-east-1"
-PACKAGE_BUCKET="${NAME}-cf-templates-${REGION}"
 
-DOMAIN="andrejkolic.com"
-SUBDOMAIN="${NAME}-${ENVIRONMENT}"
-HOSTED_ZONE_ID="Z00295123IDZ7CVMX671W"
+# Get configuration for environment
+get_config() {
+    print_info "Loading configuration for environment: $ENVIRONMENT from $CONFIG_FILE"
 
-PARAMETER_DEFINITIONS="\
-    DomainName=${DOMAIN} \
-    SubDomain=${SUBDOMAIN} \
-    HostedZoneId=${HOSTED_ZONE_ID} \
-    Environment=${ENVIRONMENT} \
-"
+    # Shared config
+    if ! jq -e "._shared" "$CONFIG_FILE" > /dev/null 2>&1; then
+        print_error "Shared configuration not found in ${CONFIG_FILE}"
+        exit 1
+    fi
+
+    NAME=$(jq -r "._shared.name" "$CONFIG_FILE")
+    REGION=$(jq -r "._shared.region" "$CONFIG_FILE")
+    PACKAGE_BUCKET="${NAME}-cf-templates-${REGION}"
+    STACK_NAME="${NAME}-${ENVIRONMENT}"
+
+    # Environment-specific config
+    if ! jq -e ".${ENVIRONMENT}" "$CONFIG_FILE" > /dev/null 2>&1; then
+        print_error "Configuration for environment '${ENVIRONMENT}' not found in ${CONFIG_FILE}"
+        exit 1
+    fi
+
+    PARAMETERS=""
+    for param in $(jq -r ".${ENVIRONMENT}.parameters | keys[]" "$CONFIG_FILE"); do
+        value=$(jq -r ".${ENVIRONMENT}.parameters.${param}" "$CONFIG_FILE")
+        PARAMETERS="${PARAMETERS} ${param}=${value}"
+    done
+
+    # print variables
+    print_debug "Environment: $ENVIRONMENT"
+    print_debug "Name: $NAME"
+    print_debug "Package Bucket: $PACKAGE_BUCKET"
+    print_debug "Stack Name: $STACK_NAME"
+    print_debug "Region: $REGION"
+    print_debug "Parameters: $PARAMETERS"
+}
+
 
 package_artifacts() {
     print_info "Packaging artifacts..."
@@ -44,6 +68,7 @@ package_artifacts() {
     fi
 }
 
+
 deploy_infrastructure() {
     print_info "Deploying infrastructure..."
     if ! aws cloudformation deploy \
@@ -51,13 +76,14 @@ deploy_infrastructure() {
         --stack-name $STACK_NAME \
         --template-file ${ROOT_DIR}/packaged.template \
         --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
-        --parameter-overrides $PARAMETER_DEFINITIONS \
+        --parameter-overrides $PARAMETERS \
         --tags Solution=ACFS3 Environment=$ENVIRONMENT
     then
         print_error "Failed to deploy infrastructure"
         exit 1
     fi
 }
+
 
 sync_site_content() {
     print_info "Syncing site content to S3..."
@@ -84,6 +110,7 @@ sync_site_content() {
     print_success "Site content synced to s3://$BUCKET_NAME"
 }
 
+
 invalidate_cloudfront_cache() {
     print_info "Invalidating CloudFront cache..."
 
@@ -109,16 +136,33 @@ invalidate_cloudfront_cache() {
     print_success "CloudFront cache invalidation requested."
 }
 
-main() {
-    print_info "Starting deployment process..."
-    
-    package_artifacts
-    deploy_infrastructure
 
-    print_success "Deployment completed successfully."
+main() {
+    case $ACTION in
+        "test")
+            check_dependencies
+            get_config
+            print_success "Test action completed successfully."
+            ;;
+        "infra")
+            check_dependencies
+            get_config
+            package_artifacts
+            deploy_infrastructure
+            print_success "Infrastructure deployment completed!"
+            ;;
+        "content")
+            check_dependencies
+            get_config
+            sync_site_content
+            invalidate_cloudfront_cache
+            print_success "Content deployment completed!"
+            ;;
+        *)
+            print_error "Unknown action: $ACTION"
+            exit 1
+            ;;
+    esac    
 }
 
 main
-
-# sync_site_content
-# invalidate_cloudfront_cache

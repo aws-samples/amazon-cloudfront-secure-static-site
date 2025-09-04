@@ -31,7 +31,7 @@ Resources:
 
   S3BucketLogs:
     Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
+    # DeletionPolicy: Retain
     Properties:
       BucketName: !Sub 
         # TODO: see if we can use name + environment instead of fullDomain
@@ -57,7 +57,7 @@ Resources:
 
   S3BucketRoot:
     Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
+    # DeletionPolicy: Retain
     Properties:
       BucketName: !Sub 
         # TODO: see if we can use name + environment instead of fullDomain

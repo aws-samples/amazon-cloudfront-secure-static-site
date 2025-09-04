@@ -1,0 +1,31 @@
+{
+  "_shared": {
+    "name": "aw1",
+    "region": "us-east-1"
+  },
+  "dev": {
+    "parameters": {
+      "DomainName": "andrejkolic.com",
+      "SubDomain": "aw1-dev",
+      "Environment": "dev",
+      "HostedZoneId": "Z00295123IDZ7CVMX671W"
+    }
+  },
+  "staging": {
+    "parameters": {
+      "DomainName": "andrejkolic.com",
+      "SubDomain": "aw1-staging",
+      "Environment": "staging",
+      "HostedZoneId": "Z00295123IDZ7CVMX671W"
+    }
+  },
+  "prod": {
+    "parameters": {
+      "DomainName": "andrejkolic.com",
+      "SubDomain": "aw1",
+      "Environment": "prod",
+      "HostedZoneId": "Z00295123IDZ7CVMX671W"
+    }
+  }
+}
+
