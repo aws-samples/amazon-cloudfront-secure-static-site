@@ -1,0 +1,182 @@
+name: Deploy Static Website
+
+on:
+  # schedule:
+  #   - cron: '*/2 * * * *'
+  #   # - cron: '10 15 11 7 *'
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: ${ env.DEFAULT_ENVIRONMENT }
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      action:
+        description: 'Deployment action'
+        required: true
+        default: ${ env.DEFAULT_ACTION }
+        type: choice
+
+        options:
+          - infra
+          - content
+
+concurrency:
+  # Unique group for each workflow + branch + environment + action
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.inputs.environment }}-${{ github.event.inputs.action}}
+  cancel-in-progress: true # Cancel any in-progress runs for this group
+
+env:
+  AWS_DEFAULT_REGION: us-east-1
+  DEFAULT_ACTION: content # Default action for triggers other than workflow_dispatch
+  DEFAULT_ENVIRONMENT: dev # Default environment for triggers other than workflow_dispatch
+
+jobs:
+  # Deploy to development environment
+  deploy-dev:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
+      (github.event_name == 'pull_request' && github.head_ref == 'develop') ||
+      (
+        github.event_name == 'workflow_dispatch' &&
+        github.event.inputs.environment == 'dev' &&
+        contains(fromJSON('["infra", "content"]'), github.event.inputs.action)
+      )
+    environment: development
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: Deploy to development
+        run: |
+          action="${{ github.event.inputs.action || env.DEFAULT_ACTION }}"
+          ./scripts/deploy.sh dev $action
+
+      - name: Comment PR with deployment info
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { execSync } = require('child_process');
+            try {
+              const output = execSync('./scripts/deploy.sh dev outputs', { encoding: 'utf8' });
+              const websiteUrl = output.match(/Website URL: (https?:\/\/[^\s]+)/);
+
+              if (websiteUrl) {
+                github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: `🚀 **Development Environment Deployed**\n\n**Website URL:** ${websiteUrl[1]}\n\n*This deployment is automatically updated with each push to this PR.*`
+                });
+              }
+            } catch (error) {
+              console.log('Could not get deployment info:', error.message);
+            }
+
+  # Deploy to staging environment
+  deploy-staging:
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (
+        github.event_name == 'workflow_dispatch' &&
+        github.event.inputs.environment == 'staging' &&
+        contains(fromJSON('["infra", "content"]'), github.event.inputs.action)
+      )
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: Deploy to staging
+        run: |
+          action="${{ github.event.inputs.action || env.DEFAULT_ACTION }}"
+          ./scripts/deploy.sh staging $action
+
+  # Deploy to production environment
+  deploy-prod:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    # needs: [validate, deploy-staging]
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.environment == 'prod' &&
+      contains(fromJSON('["infra", "content"]'), github.event.inputs.action)
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: Deploy to production
+        run: |
+          action="${{ github.event.inputs.action || env.DEFAULT_ACTION }}"
+          ./scripts/deploy.sh prod $action
+
+      # TODO: test release creation
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: release-${{ github.run_number }}
+          name: Production Release ${{ github.run_number }}
+          body: |
+            🚀 **Production Deployment**
+
+            **Commit:** ${{ github.sha }}
+            **Deployed by:** ${{ github.actor }}
+            **Workflow:** ${{ github.workflow }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Security and compliance checks
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run security scan on CloudFormation
+        uses: stelligent/cfn_nag@master
+        with:
+          input_path: cloudformation/main.yaml
