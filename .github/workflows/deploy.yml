@@ -73,6 +73,7 @@ jobs:
 
       - name: Deploy to development
         run: |
+          make package-static
           action="${{ github.event.inputs.action || env.DEFAULT_ACTION }}"
           ./scripts/deploy.sh dev $action
 
@@ -179,4 +180,4 @@ jobs:
       - name: Run security scan on CloudFormation
         uses: stelligent/cfn_nag@master
         with:
-          input_path: cloudformation/main.yaml
+          input_path: templates/main.yaml
