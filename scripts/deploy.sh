@@ -85,6 +85,53 @@ deploy_infrastructure() {
 }
 
 
+# Get stack outputs
+get_stack_outputs() {
+    print_info "Retrieving stack outputs..."
+
+    if ! aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$REGION" &>/dev/null; then
+        print_error "Failed to retrieve stack information"
+        exit 1
+    fi
+
+    BUCKET_NAME=$(aws cloudformation describe-stacks \
+        --stack-name "$STACK_NAME" \
+        --region "$REGION" \
+        --query 'Stacks[0].Outputs[?OutputKey==`S3BucketRootName`].OutputValue' \
+        --output text 2>/dev/null)
+
+    DISTRIBUTION_ID=$(aws cloudformation describe-stacks \
+        --stack-name "$STACK_NAME" \
+        --region "$REGION" \
+        --query 'Stacks[0].Outputs[?OutputKey==`CFDistributionId`].OutputValue' \
+        --output text 2>/dev/null)
+
+    WEBSITE_URL=$(aws cloudformation describe-stacks \
+        --stack-name "$STACK_NAME" \
+        --region "$REGION" \
+        --query 'Stacks[0].Outputs[?OutputKey==`CloudFrontDomainName`].OutputValue' \
+        --output text 2>/dev/null)
+
+    if [ -z "$BUCKET_NAME" ] || [ "$BUCKET_NAME" = "None" ]; then
+        print_warning "Could not retrieve bucket name from stack outputs"
+    else
+        print_info "Bucket Name: $BUCKET_NAME"
+    fi
+
+    if [ -z "$DISTRIBUTION_ID" ] || [ "$DISTRIBUTION_ID" = "None" ]; then
+        print_warning "Could not retrieve distribution ID from stack outputs"
+    else
+        print_info "Distribution ID: $DISTRIBUTION_ID"
+    fi
+
+    if [ -z "$WEBSITE_URL" ] || [ "$WEBSITE_URL" = "None" ]; then
+        print_warning "Could not retrieve website URL from stack outputs"
+    else
+        print_info "Website URL: $WEBSITE_URL"
+    fi
+}
+
+
 sync_site_content() {
     print_info "Syncing site content to S3..."
 
@@ -157,6 +204,11 @@ main() {
             sync_site_content
             invalidate_cloudfront_cache
             print_success "Content deployment completed!"
+            ;;
+        "outputs")
+            check_dependencies
+            get_config
+            get_stack_outputs
             ;;
         *)
             print_error "Unknown action: $ACTION"
