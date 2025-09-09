@@ -43,8 +43,8 @@ jobs:
         id: create_release
         uses: actions/create-release@latest
         if: env.THIS_VERSION_COMPARABLE > env.LATEST_VERSION_COMPARABLE
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        # env:
+        #   GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           tag_name: v${{ env.THIS_VERSION }}
           release_name: Release v${{ env.THIS_VERSION }}
