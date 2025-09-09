@@ -51,6 +51,31 @@ get_config() {
 }
 
 
+package_static() {
+    print_info "Packaging static site content..."
+    
+    # # Replace this with your actual site build/output directory
+    # SITE_DIR="./www"
+    # ZIP_FILE="${ROOT_DIR}/site-content.zip"
+
+    # if [ ! -d "$SITE_DIR" ]; then
+    #     print_error "Site directory '$SITE_DIR' does not exist."
+    #     exit 1
+    # fi
+
+    # # Create a zip file of the site content
+    # (cd "$SITE_DIR" && zip -r "$ZIP_FILE" .)
+
+    # if [ $? -ne 0 ]; then
+    #     print_error "Failed to create zip file for site content."
+    #     exit 1
+    # fi
+
+    # print_success "Static site content packaged into $ZIP_FILE"
+
+    make -C "$ROOT_DIR" package-static
+}
+
 package_artifacts() {
     print_info "Packaging artifacts..."
     # Create the package bucket
@@ -194,6 +219,7 @@ main() {
         "infra")
             check_dependencies
             get_config
+            package_static
             package_artifacts
             deploy_infrastructure
             print_success "Infrastructure deployment completed!"

@@ -73,7 +73,6 @@ jobs:
 
       - name: Deploy to development
         run: |
-          make package-static
           action="${{ github.event.inputs.action || env.DEFAULT_ACTION }}"
           ./scripts/deploy.sh dev $action
 
@@ -123,7 +122,6 @@ jobs:
 
       - name: Deploy to staging
         run: |
-          make package-static
           action="${{ github.event.inputs.action || env.DEFAULT_ACTION }}"
           ./scripts/deploy.sh staging $action
 
@@ -151,7 +149,6 @@ jobs:
 
       - name: Deploy to production
         run: |
-          make package-static
           action="${{ github.event.inputs.action || env.DEFAULT_ACTION }}"
           ./scripts/deploy.sh prod $action
 
