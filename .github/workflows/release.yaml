@@ -23,10 +23,10 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ secrets.REGION }}
       # Setup
-      - name: Set up Python 3.7
+      - name: Set up Python 3.10
         uses: actions/setup-python@v1
         with:
-          python-version: 3.7
+          python-version: 3.10
       - name: Install virtualenv
         run: pip install virtualenv
       - name: Install dependencies

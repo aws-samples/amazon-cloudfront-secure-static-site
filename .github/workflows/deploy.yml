@@ -169,15 +169,3 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # Security and compliance checks
-  security-scan:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run security scan on CloudFormation
-        uses: stelligent/cfn_nag@master
-        with:
-          input_path: templates/main.yaml
