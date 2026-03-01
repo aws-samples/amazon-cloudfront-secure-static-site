@@ -44,7 +44,7 @@ Resources:
     Properties:
       ContentUri: ../witch.zip
       CompatibleRuntimes:
-        - nodejs20.x
+        - nodejs24.x
 
   CopyRole:
     Type: 'AWS::IAM::Role'
@@ -88,7 +88,7 @@ Resources:
       Layers:
         - !Ref CopyLayerVersion
       Role: !GetAtt CopyRole.Arn
-      Runtime: nodejs20.x
+      Runtime: nodejs24.x
       Timeout: 300
 
 Outputs:

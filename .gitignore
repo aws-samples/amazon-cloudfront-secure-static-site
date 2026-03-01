@@ -18,6 +18,7 @@ witch.zip
 **/node_modules
 **/coverage
 **/package.json
+**/package-lock.json
 
 # e2e
 **/e2e/*.js
@@ -27,7 +28,6 @@ witch.zip
 **/npm-debug.log
 **/testem.log
 **/.env
-# package-lock.json
 **/.vscode/settings.json
 **/setenv.sh
 
