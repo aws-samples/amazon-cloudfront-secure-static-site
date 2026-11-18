@@ -12,6 +12,10 @@ Metadata:
         Parameters:
           - SubDomain
           - DomainName
+      - Label:
+          default: Logging
+        Parameters:
+          - LogDestination
 
 Mappings:
   Solution:
@@ -46,6 +50,11 @@ Parameters:
     Type: String
     Default: 'no'
     AllowedValues: ['yes', 'no']
+  LogDestination:
+    Description: Where CloudFront access logs (standard logging v2 / vended logs) are delivered - S3 or CloudWatchLogs
+    Type: String
+    Default: S3
+    AllowedValues: ['S3', 'CloudWatchLogs']
 
 Resources:
   CustomResourceStack:
@@ -82,7 +91,7 @@ Resources:
         S3BucketRootName: !GetAtt CustomResourceStack.Outputs.S3BucketRootName
         S3BucketRootArn: !GetAtt CustomResourceStack.Outputs.S3BucketRootArn
         S3BucketLogs: !GetAtt CustomResourceStack.Outputs.S3BucketLogs
-        S3BucketLogsName: !GetAtt CustomResourceStack.Outputs.S3BucketLogsName
+        LogDestination: !Ref LogDestination
       Tags:
         - Key: Solution
           Value: ACFS3
