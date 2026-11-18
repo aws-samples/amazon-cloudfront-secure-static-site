@@ -33,6 +33,14 @@ This solution creates an S3 bucket that hosts your static website’s assets. Th
 
 This solution creates a CloudFront distribution to serve your website to viewers. The distribution is configured with a CloudFront [origin access identity](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html) to make sure that the website is only accessible via CloudFront, not directly from S3. The distribution is also configured with a [CloudFront Response Header Policy](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/adding-response-headers.html) that adds security headers to every response.
 
+### Route 53 records
+The solution creates A and AAAA (IPv6) alias records for the subdomain, and for the domain apex when **CreateApex** is **yes**.
+
+### Access logging
+CloudFront [standard logging (v2)](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/standard-logging.html) delivers access logs to the destination set by the **LogDestination** parameter:
+- **S3** (default): Parquet files in the logs bucket under `cdn/AWSLogs/<account-id>/`.
+- **CloudWatchLogs**: JSON events in the log group `/aws/cloudfront/<stack name>`, retained for 365 days. The logs bucket is still created but stays empty.
+
 ### ACM configuration
 
 This solution creates an SSL/TLS certificate in ACM, and attaches it to the CloudFront distribution. This enables the distribution to serve your domain’s website using HTTPS.
@@ -58,7 +66,7 @@ You must have a registered domain name, such as example.com, and point it to a R
 
 ## Deploy the solution
 
-> :⚠️ This template can only be deployed in the `us-east-1` region
+> :⚠️ This template can only be deployed in regions that host the CloudFront control plane: `us-east-1` and `eusc-de-east-1` (AWS European Sovereign Cloud). The **Launch on AWS** button and template URL below target `us-east-1`. For `eusc-de-east-1`, deploy with the AWS CLI (see [Update the website content locally](#update-the-website-content-locally)) and set `--region` accordingly.
 
 To deploy the solution, you use [AWS CloudFormation](https://aws.amazon.com/cloudformation). You can use the CloudFormation console, or download the CloudFormation template to deploy it on your own.
 
@@ -81,6 +89,7 @@ To deploy the solution, you use [AWS CloudFormation](https://aws.amazon.com/clou
    - **DomainName:** Your registered domain name, such as example.com. This domain must be pointed to a Route 53 hosted zone.
    - **HostedZoneId** The Route 53 Hosted Zone Id containing the domain being used.
    - **CreateApex:** Optionally create an Alias to the domain apex (example.com) in your CloudFront configuration. Default is [no]
+   - **LogDestination:** Where CloudFront access logs are delivered: **S3** (default) or **CloudWatchLogs**. See [Access logging](#access-logging).
 
    After entering values, choose the **Next** button.
 
@@ -103,7 +112,7 @@ To deploy the solution, you use [AWS CloudFormation](https://aws.amazon.com/clou
 
 1. Go to the [Amazon S3 console](https://s3.console.aws.amazon.com/s3/home).
 1. Choose the bucket whose name begins with **amazon-cloudfront-secure-static-site-s3bucketroot-**.
-   > **Note:** Make sure to choose the bucket with **s3bucketroot** in its name, not **s3bucketlogs**. The bucket with **s3bucketroot** in its name contains the content. The one with **s3bucketlogs** contains only log files.
+   > **Note:** Make sure to choose the bucket with **s3bucketroot** in its name, not **s3bucketlogs**. The bucket with **s3bucketroot** in its name contains the content. The one with **s3bucketlogs** contains only log files (and is empty if **LogDestination** is **CloudWatchLogs**).
 1. In the bucket, delete the default content, then upload your own.
 
 ### Download the CloudFormation template
@@ -130,13 +139,13 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
 5. If you don’t have one already, create an S3 bucket to store the CloudFormation artifacts. To create one, use the following AWS CLI command:
 
    ```shell
-   aws s3 mb s3://<S3 bucket name> --region us-east-1
+   aws s3 mb s3://<S3 bucket name> --region <us-east-1 or eusc-de-east-1>
    ```
 
 6. Run the following AWS CLI command to package the CloudFormation template. The template uses the [AWS Serverless Application Model](https://aws.amazon.com/about-aws/whats-new/2016/11/introducing-the-aws-serverless-application-model/), so it must be transformed before you can deploy it.
 
    ```shell
-   aws --region us-east-1 cloudformation package \
+   aws --region <us-east-1 or eusc-de-east-1> cloudformation package \
        --template-file templates/main.yaml \
        --s3-bucket <your S3 bucket name> \
        --output-template-file packaged.template
@@ -145,7 +154,7 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
 7. Run the following command to deploy the packaged CloudFormation template to a CloudFormation stack. To optionally deploy the stack with a domain apex skip this section and proceed to [Step 8] below.
 
    ```shell
-   aws --region us-east-1 cloudformation deploy \
+   aws --region <us-east-1 or eusc-de-east-1> cloudformation deploy \
        --stack-name <your CloudFormation stack name> \
        --template-file packaged.template \
        --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
@@ -155,7 +164,7 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
 8. [Optional] Run the following command to deploy the packaged CloudFormation template to a CloudFormation stack with a domain apex.
 
    ```shell
-   aws --region us-east-1 cloudformation deploy \
+   aws --region <us-east-1 or eusc-de-east-1> cloudformation deploy \
        --stack-name <your CloudFormation stack name> \
        --template-file packaged.template \
        --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
