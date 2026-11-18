@@ -22,12 +22,12 @@ Rules:
   OnlyUsEast1:
     Assertions:
       - Assert:
-          Fn::Equals:
+          Fn::Contains:
+            - ["us-east-1", "eusc-de-east-1"]
             - !Ref AWS::Region
-            - us-east-1
         AssertDescription: |
-          This template can only be deployed in the us-east-1 region.
-          This is because the ACM Certificate must be created in us-east-1
+          This template can only be deployed in the regions with a CloudFront control plane.
+          This is because the ACM Certificate must be created in the same region as CloudFront's control plane.
 
 Parameters:
   SubDomain:
