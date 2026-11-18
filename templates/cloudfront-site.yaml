@@ -42,6 +42,9 @@ Conditions:
   CreateApexConfig: !Equals
     - !Ref CreateApex
     - 'yes'
+  IsEuscPartition: !Equals
+    - !Ref AWS::Partition
+    - aws-eusc
 
 Resources:
   S3BucketPolicy:
@@ -217,8 +220,15 @@ Resources:
           AliasTarget:
             DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
             EvaluateTargetHealth: false
-            # The  following HosteZoneId is always used for alias records pointing to CF.
-            HostedZoneId: 'Z2FDTNDATAQYW2'
+            # Hosted zone ID used for alias records pointing to CloudFront
+            # (differs in the AWS European Sovereign Cloud partition).
+            HostedZoneId: !If [IsEuscPartition, 'Z02010231DDS20FNRTLEC', 'Z2FDTNDATAQYW2']
+        - Name: !Sub '${SubDomain}.${DomainName}'
+          Type: 'AAAA'
+          AliasTarget:
+            DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
+            EvaluateTargetHealth: false
+            HostedZoneId: !If [IsEuscPartition, 'Z02010231DDS20FNRTLEC', 'Z2FDTNDATAQYW2']
 
   ApexRoute53RecordSetGroup:
     Condition: CreateApexConfig
@@ -231,8 +241,15 @@ Resources:
           AliasTarget:
             DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
             EvaluateTargetHealth: false
-            # The  following HosteZoneId is always used for alias records pointing to CF.
-            HostedZoneId: 'Z2FDTNDATAQYW2'
+            # Hosted zone ID used for alias records pointing to CloudFront
+            # (differs in the AWS European Sovereign Cloud partition).
+            HostedZoneId: !If [IsEuscPartition, 'Z02010231DDS20FNRTLEC', 'Z2FDTNDATAQYW2']
+        - Name: !Ref 'DomainName'
+          Type: 'AAAA'
+          AliasTarget:
+            DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
+            EvaluateTargetHealth: false
+            HostedZoneId: !If [IsEuscPartition, 'Z02010231DDS20FNRTLEC', 'Z2FDTNDATAQYW2']
 
   ResponseHeadersPolicy:
     Type: AWS::CloudFront::ResponseHeadersPolicy
