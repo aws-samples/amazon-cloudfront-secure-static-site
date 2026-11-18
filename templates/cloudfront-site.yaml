@@ -72,10 +72,8 @@ Resources:
           - !If [CreateApexConfig, !Ref DomainName, !Ref 'AWS::NoValue']
         DefaultCacheBehavior:
           Compress: true
-          DefaultTTL: 86400
-          ForwardedValues:
-            QueryString: true
-          MaxTTL: 31536000
+          # Managed policy: CachingOptimized
+          CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6'
           TargetOriginId: !Sub 'S3-${AWS::StackName}-root'
           ViewerProtocolPolicy: 'redirect-to-https'
           ResponseHeadersPolicyId: !Ref ResponseHeadersPolicy
