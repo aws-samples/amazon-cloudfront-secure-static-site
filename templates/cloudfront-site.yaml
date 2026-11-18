@@ -98,7 +98,7 @@ Resources:
         PriceClass: 'PriceClass_All'
         ViewerCertificate:
           AcmCertificateArn: !Ref 'CertificateArn'
-          MinimumProtocolVersion: 'TLSv1.1_2016'
+          MinimumProtocolVersion: 'TLSv1.3_2025'
           SslSupportMethod: 'sni-only'
       Tags:
         - Key: Solution
