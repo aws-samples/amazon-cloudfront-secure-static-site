@@ -261,7 +261,7 @@ Resources:
             Override: true
             Preload: true
           ContentSecurityPolicy:
-            ContentSecurityPolicy: "default-src 'none'; img-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'"
+            ContentSecurityPolicy: "default-src 'none'; img-src 'self'; script-src 'self'; style-src 'self'; font-src https://a0.awsstatic.com; object-src 'none'"
             Override: true
           ContentTypeOptions:
             Override: true
