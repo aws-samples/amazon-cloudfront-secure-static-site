@@ -66,7 +66,7 @@ You must have a registered domain name, such as example.com, and point it to a R
 
 ## Deploy the solution
 
-> :⚠️ This template can only be deployed in regions that host the CloudFront control plane: `us-east-1` and `eusc-de-east-1` (AWS European Sovereign Cloud). The **Launch on AWS** button and template URL below target `us-east-1`. For `eusc-de-east-1`, deploy with the AWS CLI (see [Update the website content locally](#update-the-website-content-locally)) and set `--region` accordingly.
+> ⚠️ The **Launch on AWS** button and template URL below target `us-east-1`. For `eusc-de-east-1`, deploy with the AWS CLI (see [Update the website content locally](#update-the-website-content-locally)) and set `--region` accordingly.
 
 To deploy the solution, you use [AWS CloudFormation](https://aws.amazon.com/cloudformation). You can use the CloudFormation console, or download the CloudFormation template to deploy it on your own.
 
@@ -127,44 +127,50 @@ https://s3.amazonaws.com/solution-builders-us-east-1/amazon-cloudfront-secure-st
 
 **To customize the website with your own content before deploying the solution**
 
-1. Install npm. For more information, go to https://www.npmjs.com/get-npm.
-2. Clone or download this project from https://github.com/awslabs/aws-cloudformation-templates.
-3. Run the following command to package a build artifact.
+1. Set the region to deploy to. Use `us-east-1`, or `eusc-de-east-1` for the AWS European Sovereign Cloud. The commands below use this variable.
+
+   ```shell
+   export DEPLOYMENT_REGION=us-east-1
+   ```
+
+2. Install npm. For more information, go to https://www.npmjs.com/get-npm.
+3. Clone or download this project from https://github.com/awslabs/aws-cloudformation-templates.
+4. Run the following command to package a build artifact.
 
    ```shell
    make package-static
    ```
 
-4. Copy your website content into the **www** folder.
-5. If you don’t have one already, create an S3 bucket to store the CloudFormation artifacts. To create one, use the following AWS CLI command:
+5. Copy your website content into the **www** folder.
+6. If you don’t have one already, create an S3 bucket to store the CloudFormation artifacts. To create one, use the following AWS CLI command:
 
    ```shell
-   aws s3 mb s3://<S3 bucket name> --region <us-east-1 or eusc-de-east-1>
+   aws s3 mb s3://<S3 bucket name> --region "$DEPLOYMENT_REGION"
    ```
 
-6. Run the following AWS CLI command to package the CloudFormation template. The template uses the [AWS Serverless Application Model](https://aws.amazon.com/about-aws/whats-new/2016/11/introducing-the-aws-serverless-application-model/), so it must be transformed before you can deploy it.
+7. Run the following AWS CLI command to package the CloudFormation template. The template uses the [AWS Serverless Application Model](https://aws.amazon.com/about-aws/whats-new/2016/11/introducing-the-aws-serverless-application-model/), so it must be transformed before you can deploy it.
 
    ```shell
-   aws --region <us-east-1 or eusc-de-east-1> cloudformation package \
+   aws --region "$DEPLOYMENT_REGION" cloudformation package \
        --template-file templates/main.yaml \
        --s3-bucket <your S3 bucket name> \
        --output-template-file packaged.template
    ```
 
-7. Run the following command to deploy the packaged CloudFormation template to a CloudFormation stack. To optionally deploy the stack with a domain apex skip this section and proceed to [Step 8] below.
+8. Run the following command to deploy the packaged CloudFormation template to a CloudFormation stack. To optionally deploy the stack with a domain apex skip this section and proceed to [Step 9] below.
 
    ```shell
-   aws --region <us-east-1 or eusc-de-east-1> cloudformation deploy \
+   aws --region "$DEPLOYMENT_REGION" cloudformation deploy \
        --stack-name <your CloudFormation stack name> \
        --template-file packaged.template \
        --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
        --parameter-overrides  DomainName=<your domain name> SubDomain=<your website subdomain> HostedZoneId=<hosted zone id>
    ```
 
-8. [Optional] Run the following command to deploy the packaged CloudFormation template to a CloudFormation stack with a domain apex.
+9. [Optional] Run the following command to deploy the packaged CloudFormation template to a CloudFormation stack with a domain apex.
 
    ```shell
-   aws --region <us-east-1 or eusc-de-east-1> cloudformation deploy \
+   aws --region "$DEPLOYMENT_REGION" cloudformation deploy \
        --stack-name <your CloudFormation stack name> \
        --template-file packaged.template \
        --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
