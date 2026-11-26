@@ -32,6 +32,16 @@ Parameters:
     Default: S3
     AllowedValues: ['S3', 'CloudWatchLogs']
 
+Mappings:
+  # Route 53 hosted zone ID to use in alias records that point to a CloudFront
+  # distribution. This is a fixed, AWS-owned value per partition, not the ID of
+  # your own hosted zone.
+  # See https://docs.aws.amazon.com/Route53/latest/APIReference/API_AliasTarget.html
+  CloudFrontAliasHostedZone:
+    aws:
+      HostedZoneId: Z2FDTNDATAQYW2
+    aws-eusc:
+      HostedZoneId: Z02010231DDS20FNRTLEC
 Conditions:
   LogToS3: !Equals
     - !Ref LogDestination
@@ -42,9 +52,6 @@ Conditions:
   CreateApexConfig: !Equals
     - !Ref CreateApex
     - 'yes'
-  IsEuscPartition: !Equals
-    - !Ref AWS::Partition
-    - aws-eusc
 
 Resources:
   S3BucketPolicy:
@@ -218,15 +225,13 @@ Resources:
           AliasTarget:
             DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
             EvaluateTargetHealth: false
-            # Hosted zone ID used for alias records pointing to CloudFront
-            # (differs in the AWS European Sovereign Cloud partition).
-            HostedZoneId: !If [IsEuscPartition, 'Z02010231DDS20FNRTLEC', 'Z2FDTNDATAQYW2']
+            HostedZoneId: !FindInMap [CloudFrontAliasHostedZone, !Ref AWS::Partition, HostedZoneId]
         - Name: !Sub '${SubDomain}.${DomainName}'
           Type: 'AAAA'
           AliasTarget:
             DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
             EvaluateTargetHealth: false
-            HostedZoneId: !If [IsEuscPartition, 'Z02010231DDS20FNRTLEC', 'Z2FDTNDATAQYW2']
+            HostedZoneId: !FindInMap [CloudFrontAliasHostedZone, !Ref AWS::Partition, HostedZoneId]
 
   ApexRoute53RecordSetGroup:
     Condition: CreateApexConfig
@@ -239,15 +244,13 @@ Resources:
           AliasTarget:
             DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
             EvaluateTargetHealth: false
-            # Hosted zone ID used for alias records pointing to CloudFront
-            # (differs in the AWS European Sovereign Cloud partition).
-            HostedZoneId: !If [IsEuscPartition, 'Z02010231DDS20FNRTLEC', 'Z2FDTNDATAQYW2']
+            HostedZoneId: !FindInMap [CloudFrontAliasHostedZone, !Ref AWS::Partition, HostedZoneId]
         - Name: !Ref 'DomainName'
           Type: 'AAAA'
           AliasTarget:
             DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
             EvaluateTargetHealth: false
-            HostedZoneId: !If [IsEuscPartition, 'Z02010231DDS20FNRTLEC', 'Z2FDTNDATAQYW2']
+            HostedZoneId: !FindInMap [CloudFrontAliasHostedZone, !Ref AWS::Partition, HostedZoneId]
 
   ResponseHeadersPolicy:
     Type: AWS::CloudFront::ResponseHeadersPolicy
