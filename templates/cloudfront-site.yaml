@@ -18,9 +18,6 @@ Parameters:
   S3BucketRoot:
     Description: Content Bucket
     Type: String
-  S3BucketLogsName:
-    Description: Logging Bucket
-    Type: String
   S3BucketRootName:
     Description: Content Bucket
     Type: String
@@ -29,8 +26,29 @@ Parameters:
     Type: String
   CreateApex:
     Type: String
+  LogDestination:
+    Description: Where CloudFront access logs (standard logging v2) are delivered - S3 or CloudWatchLogs
+    Type: String
+    Default: S3
+    AllowedValues: ['S3', 'CloudWatchLogs']
 
+Mappings:
+  # Route 53 hosted zone ID to use in alias records that point to a CloudFront
+  # distribution. This is a fixed, AWS-owned value per partition, not the ID of
+  # your own hosted zone.
+  # See https://docs.aws.amazon.com/Route53/latest/APIReference/API_AliasTarget.html
+  CloudFrontAliasHostedZone:
+    aws:
+      HostedZoneId: Z2FDTNDATAQYW2
+    aws-eusc:
+      HostedZoneId: Z02010231DDS20FNRTLEC
 Conditions:
+  LogToS3: !Equals
+    - !Ref LogDestination
+    - S3
+  LogToCloudWatch: !Equals
+    - !Ref LogDestination
+    - CloudWatchLogs
   CreateApexConfig: !Equals
     - !Ref CreateApex
     - 'yes'
@@ -50,7 +68,7 @@ Resources:
             Resource: !Sub '${S3BucketRootArn}/*'
             Condition:
               StringEquals:
-                'AWS:SourceArn': !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}'
+                'AWS:SourceArn': !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}'
 
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
@@ -61,10 +79,8 @@ Resources:
           - !If [CreateApexConfig, !Ref DomainName, !Ref 'AWS::NoValue']
         DefaultCacheBehavior:
           Compress: true
-          DefaultTTL: 86400
-          ForwardedValues:
-            QueryString: true
-          MaxTTL: 31536000
+          # Managed policy: CachingOptimized
+          CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6'
           TargetOriginId: !Sub 'S3-${AWS::StackName}-root'
           ViewerProtocolPolicy: 'redirect-to-https'
           ResponseHeadersPolicyId: !Ref ResponseHeadersPolicy
@@ -81,10 +97,6 @@ Resources:
         HttpVersion: 'http2'
         DefaultRootObject: 'index.html'
         IPV6Enabled: true
-        Logging:
-          Bucket: !Ref 'S3BucketLogsName'
-          IncludeCookies: false
-          Prefix: 'cdn/'
         Origins:
           - DomainName: !Ref 'S3BucketRootName'
             Id: !Sub 'S3-${AWS::StackName}-root'
@@ -93,12 +105,103 @@ Resources:
         PriceClass: 'PriceClass_All'
         ViewerCertificate:
           AcmCertificateArn: !Ref 'CertificateArn'
-          MinimumProtocolVersion: 'TLSv1.1_2016'
+          MinimumProtocolVersion: 'TLSv1.3_2025'
           SslSupportMethod: 'sni-only'
       Tags:
         - Key: Solution
           Value: ACFS3
 
+  # CloudFront standard logging (v2) uses CloudWatch vended logs delivery.
+  # Delivery resources must be created in the CloudFront control plane region (us-east-1).
+  AccessLogDeliverySource:
+    Type: AWS::Logs::DeliverySource
+    Properties:
+      Name: !Sub 'cf-${CloudFrontDistribution}-access-logs'
+      LogType: ACCESS_LOGS
+      ResourceArn: !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}'
+      Tags:
+        - Key: Solution
+          Value: ACFS3
+  AccessLogGroup:
+    Condition: LogToCloudWatch
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/cloudfront/${AWS::StackName}'
+      RetentionInDays: 365
+      Tags:
+        - Key: Solution
+          Value: ACFS3
+  AccessLogDeliveryDestinationCloudWatch:
+    Condition: LogToCloudWatch
+    Type: AWS::Logs::DeliveryDestination
+    Properties:
+      Name: !Sub 'cf-${CloudFrontDistribution}-cwl'
+      DestinationResourceArn: !GetAtt AccessLogGroup.Arn
+      OutputFormat: json
+      Tags:
+        - Key: Solution
+          Value: ACFS3
+  AccessLogDeliveryCloudWatch:
+    Condition: LogToCloudWatch
+    Type: AWS::Logs::Delivery
+    Properties:
+      DeliverySourceName: !Ref AccessLogDeliverySource
+      DeliveryDestinationArn: !GetAtt AccessLogDeliveryDestinationCloudWatch.Arn
+      Tags:
+        - Key: Solution
+          Value: ACFS3
+  S3BucketLogsPolicy:
+    Condition: LogToS3
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref 'S3BucketLogs'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AWSLogDeliveryWrite
+            Effect: Allow
+            Principal:
+              Service: delivery.logs.amazonaws.com
+            Action: s3:PutObject
+            Resource: !Sub 'arn:${AWS::Partition}:s3:::${S3BucketLogs}/cdn/AWSLogs/${AWS::AccountId}/*'
+            Condition:
+              StringEquals:
+                's3:x-amz-acl': bucket-owner-full-control
+                'aws:SourceAccount': !Ref 'AWS::AccountId'
+              ArnLike:
+                'aws:SourceArn': !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:delivery-source:*'
+          - Sid: AWSLogDeliveryAclCheck
+            Effect: Allow
+            Principal:
+              Service: delivery.logs.amazonaws.com
+            Action: s3:GetBucketAcl
+            Resource: !Sub 'arn:${AWS::Partition}:s3:::${S3BucketLogs}'
+            Condition:
+              StringEquals:
+                'aws:SourceAccount': !Ref 'AWS::AccountId'
+              ArnLike:
+                'aws:SourceArn': !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:delivery-source:*'
+  AccessLogDeliveryDestinationS3:
+    Condition: LogToS3
+    Type: AWS::Logs::DeliveryDestination
+    DependsOn: S3BucketLogsPolicy
+    Properties:
+      Name: !Sub 'cf-${CloudFrontDistribution}-s3'
+      DestinationResourceArn: !Sub 'arn:${AWS::Partition}:s3:::${S3BucketLogs}/cdn'
+      OutputFormat: parquet
+      Tags:
+        - Key: Solution
+          Value: ACFS3
+  AccessLogDeliveryS3:
+    Condition: LogToS3
+    Type: AWS::Logs::Delivery
+    Properties:
+      DeliverySourceName: !Ref AccessLogDeliverySource
+      DeliveryDestinationArn: !GetAtt AccessLogDeliveryDestinationS3.Arn
+      S3EnableHiveCompatiblePath: false
+      Tags:
+        - Key: Solution
+          Value: ACFS3
   OriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
@@ -122,8 +225,13 @@ Resources:
           AliasTarget:
             DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
             EvaluateTargetHealth: false
-            # The  following HosteZoneId is always used for alias records pointing to CF.
-            HostedZoneId: 'Z2FDTNDATAQYW2'
+            HostedZoneId: !FindInMap [CloudFrontAliasHostedZone, !Ref AWS::Partition, HostedZoneId]
+        - Name: !Sub '${SubDomain}.${DomainName}'
+          Type: 'AAAA'
+          AliasTarget:
+            DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
+            EvaluateTargetHealth: false
+            HostedZoneId: !FindInMap [CloudFrontAliasHostedZone, !Ref AWS::Partition, HostedZoneId]
 
   ApexRoute53RecordSetGroup:
     Condition: CreateApexConfig
@@ -136,8 +244,13 @@ Resources:
           AliasTarget:
             DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
             EvaluateTargetHealth: false
-            # The  following HosteZoneId is always used for alias records pointing to CF.
-            HostedZoneId: 'Z2FDTNDATAQYW2'
+            HostedZoneId: !FindInMap [CloudFrontAliasHostedZone, !Ref AWS::Partition, HostedZoneId]
+        - Name: !Ref 'DomainName'
+          Type: 'AAAA'
+          AliasTarget:
+            DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
+            EvaluateTargetHealth: false
+            HostedZoneId: !FindInMap [CloudFrontAliasHostedZone, !Ref AWS::Partition, HostedZoneId]
 
   ResponseHeadersPolicy:
     Type: AWS::CloudFront::ResponseHeadersPolicy
@@ -151,7 +264,7 @@ Resources:
             Override: true
             Preload: true
           ContentSecurityPolicy:
-            ContentSecurityPolicy: "default-src 'none'; img-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'"
+            ContentSecurityPolicy: "default-src 'none'; img-src 'self'; script-src 'self'; style-src 'self'; font-src https://a0.awsstatic.com; object-src 'none'"
             Override: true
           ContentTypeOptions:
             Override: true

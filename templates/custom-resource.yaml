@@ -44,7 +44,7 @@ Resources:
     Properties:
       ContentUri: ../witch.zip
       CompatibleRuntimes:
-        - nodejs20.x
+        - nodejs24.x
 
   CopyRole:
     Type: 'AWS::IAM::Role'
@@ -57,7 +57,7 @@ Resources:
             Action:
               - sts:AssumeRole
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
       Policies:
         - PolicyName: S3CopyPolicy
           PolicyDocument:
@@ -71,10 +71,10 @@ Resources:
                   - s3:PutObjectAcl
                 Resource:
                   - !Sub
-                    - arn:aws:s3:::${TargetBucket}/*
+                    - arn:${AWS::Partition}:s3:::${TargetBucket}/*
                     - TargetBucket: !Ref S3BucketRoot
                   - !Sub
-                    - arn:aws:s3:::${TargetBucket}
+                    - arn:${AWS::Partition}:s3:::${TargetBucket}
                     - TargetBucket: !Ref S3BucketRoot
 
   CopyFunction:
@@ -88,7 +88,7 @@ Resources:
       Layers:
         - !Ref CopyLayerVersion
       Role: !GetAtt CopyRole.Arn
-      Runtime: nodejs20.x
+      Runtime: nodejs24.x
       Timeout: 300
 
 Outputs:
@@ -97,7 +97,9 @@ Outputs:
     Value: !Ref S3BucketRoot
   S3BucketRootName:
     Description: Website bucket name
-    Value: !GetAtt S3BucketRoot.DomainName
+    # Regional S3 endpoint; AWS::URLSuffix resolves per partition
+    # (amazonaws.com, amazonaws.eu, ...).
+    Value: !Sub '${S3BucketRoot}.s3.${AWS::Region}.${AWS::URLSuffix}'
   S3BucketRootArn:
     Description: Website bucket locator
     Value: !GetAtt S3BucketRoot.Arn
@@ -106,7 +108,9 @@ Outputs:
     Value: !Ref S3BucketLogs
   S3BucketLogsName:
     Description: Logging bucket Name
-    Value: !GetAtt S3BucketLogs.DomainName
+    # Regional S3 endpoint; AWS::URLSuffix resolves per partition
+    # (amazonaws.com, amazonaws.eu, ...).
+    Value: !Sub '${S3BucketLogs}.s3.${AWS::Region}.${AWS::URLSuffix}'
   CopyFunction:
     Description: S3 helper function
     Value: !GetAtt CopyFunction.Arn

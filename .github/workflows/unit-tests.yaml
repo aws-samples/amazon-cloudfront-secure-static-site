@@ -20,9 +20,9 @@ jobs:
     steps:
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.4.4'
+          ruby-version: '3.4'
       - run: gem install cfn-nag
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
       # Run Tests
       - name: CloudFormation unit tests
         run: make test-cfn
