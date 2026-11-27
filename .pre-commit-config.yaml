@@ -23,12 +23,12 @@ repos:
       - id: git-secrets
 
   # CloudFormation
-  - repo: https://github.com/aws-cloudformation/cfn-python-lint
-    rev: v0.27.1
+  - repo: https://github.com/aws-cloudformation/cfn-lint
+    rev: v1.61.0
     hooks:
-      - id: cfn-python-lint
+      - id: cfn-lint
         name: AWS CloudFormation Linter
-        files: \.(template)$
+        files: ^templates/.*\.yaml$
         args: [--ignore-checks=W3002]
 
   - repo: https://github.com/pre-commit/mirrors-prettier
