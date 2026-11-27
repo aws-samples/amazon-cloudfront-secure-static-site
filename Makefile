@@ -28,7 +28,7 @@ clean:
 	rm -rf *.zip source/witch/nodejs/node_modules/
 
 test-cfn:
-	cfn_nag templates/*.yaml --blacklist-path ci/cfn_nag_blacklist.yaml
+	checkov --config-file ci/checkov.yaml -d templates
 
 version:
 	@echo $(shell cfn-flip templates/main.yaml | python -c 'import sys, json; print(json.load(sys.stdin)["Mappings"]["Solution"]["Constants"]["Version"])')

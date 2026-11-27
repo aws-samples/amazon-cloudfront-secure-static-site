@@ -1,0 +1,23 @@
+---
+# Checkov configuration for the CloudFormation templates.
+# Each skipped check is listed with the reason it does not apply here.
+compact: true
+quiet: true
+framework:
+  - cloudformation
+skip-check:
+  # CloudFront WAF adds cost and is left to the deployer for a static sample site.
+  - CKV_AWS_68
+  # Access logging on the logging bucket itself would be recursive.
+  - CKV_AWS_18
+  # Access logs use CloudFront standard logging v2 (AWS::Logs::Delivery
+  # resources). This check only recognises the legacy Logging property.
+  - CKV_AWS_86
+  # Bucket content is deployed from this repository and logs are append-only.
+  - CKV_AWS_21
+  # The copy function is a one-shot custom resource. It needs no VPC, DLQ or
+  # concurrency limit, and its only environment variable is a bucket name.
+  - CKV_AWS_115
+  - CKV_AWS_116
+  - CKV_AWS_117
+  - CKV_AWS_173
